@@ -412,8 +412,9 @@ void MeshWidget::paintGL()
         RenderStats();
     }
 
-    // Schedule next draw
-    update();
+    // Schedule next draw only while the camera is animating
+    if (MoveAt)
+        update();
 }
 
 /*!
@@ -799,6 +800,7 @@ void MeshWidget::mouseMoveEvent(QMouseEvent* e)
         _InternalGetMouseGlobalPosition(e, x0, y0);
 
         emit _signalMouseMove(e);
+        emit _signalCameraChanged();
     }
     if (e->modifiers() & Qt::ShiftModifier)
     {
@@ -835,6 +837,7 @@ void MeshWidget::wheelEvent(QWheelEvent* e)
         glOrtho(-cameraOrthoSize, cameraOrthoSize, -cameraOrthoSize, cameraOrthoSize, camera.GetNear(), camera.GetFar());
     }
 
+    emit _signalCameraChanged();
     update();
 }
 

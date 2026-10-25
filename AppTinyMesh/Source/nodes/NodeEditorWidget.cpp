@@ -6,13 +6,9 @@
 #include <QtConcurrent/QtConcurrentRun>
 #include <QFutureWatcher>
 #include <QHBoxLayout>
-#include <QHeaderView>
 #include <QLabel>
 #include <QMenu>
 #include <QPushButton>
-#include <QSplitter>
-#include <QTableWidget>
-#include <QTableWidgetItem>
 #include <QTimer>
 #include <QVBoxLayout>
 
@@ -34,13 +30,6 @@ std::shared_ptr<QtNodes::NodeDelegateModelRegistry> createRegistry()
     registry->registerModel<ThresholdNodeModel>("Operators");
     registry->registerModel<OutputNodeModel>("Output");
     return registry;
-}
-
-QTableWidgetItem* numericItem(double value, int decimals = 2)
-{
-    auto* item = new QTableWidgetItem(QString::number(value, 'f', decimals));
-    item->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
-    return item;
 }
 
 }
@@ -121,31 +110,7 @@ void NodeEditorWidget::buildUi()
                       .arg(type));
     });
 
-    _profileTable = new QTableWidget(0, 5);
-    _profileTable->setHorizontalHeaderLabels({QStringLiteral("Node"),
-                                              QStringLiteral("Build (us)"),
-                                              QStringLiteral("Inclusive (ms)"),
-                                              QStringLiteral("Self (ms)"),
-                                              QStringLiteral("Share (%)")});
-    _profileTable->verticalHeader()->setVisible(false);
-    _profileTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    _profileTable->setSelectionBehavior(QAbstractItemView::SelectRows);
-    _profileTable->setAlternatingRowColors(true);
-    _profileTable->setToolTip(
-        QStringLiteral("Inclusive: sampled cost of this node including its inputs.\n"
-                       "Self: inclusive cost minus direct children.\n"
-                       "Timings use 4096 deterministic sample points."));
-    _profileTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
-    for (int column = 1; column < 5; ++column)
-        _profileTable->horizontalHeader()->setSectionResizeMode(column, QHeaderView::ResizeToContents);
-
-    auto* splitter = new QSplitter(Qt::Vertical, this);
-    splitter->addWidget(_view);
-    splitter->addWidget(_profileTable);
-    splitter->setStretchFactor(0, 4);
-    splitter->setStretchFactor(1, 1);
-    splitter->setSizes({520, 160});
-    layout->addWidget(splitter, 1);
+    layout->addWidget(_view, 1);
 
     connect(_recomputeButton, &QPushButton::clicked, this, &NodeEditorWidget::recompute);
     connect(demoButton, &QPushButton::clicked, this, &NodeEditorWidget::loadDemoGraph);
@@ -156,7 +121,6 @@ void NodeEditorWidget::buildUi()
     connect(loadButton, &QPushButton::clicked, this, [this]() {
         if (_scene->load()) {
             ++_generation;
-            _profileTable->setRowCount(0);
             QTimer::singleShot(0, _view, &QtNodes::GraphicsView::centerScene);
             setStatus(QStringLiteral("Graph loaded. Press Recompute to rebuild the mesh."));
         }
@@ -173,6 +137,8 @@ void NodeEditorWidget::buildUi()
                 if (auto* node = _model->delegateModel<NodeModelBase>(id)) {
                     connect(node, &NodeModelBase::parametersChanged, this,
                             [this]() { ++_generation; });
+                    connect(node, &NodeModelBase::recomputeRequested, this,
+                            &NodeEditorWidget::recompute);
                 }
             });
 }
@@ -206,7 +172,6 @@ void NodeEditorWidget::loadDemoGraph()
 
     QTimer::singleShot(0, _view, &QtNodes::GraphicsView::centerScene);
 
-    _profileTable->setRowCount(0);
     setStatus(QStringLiteral("Demo graph loaded. Press Recompute to rebuild the mesh."));
 }
 
@@ -255,7 +220,6 @@ void NodeEditorWidget::recompute()
                 setNodeStatuses(QtNodes::NodeProcessingStatus::Updated);
 
                 updateNodeTimings(*result);
-                updateProfileTable(*result);
 
                 const QString summary =
                     QStringLiteral("Total %1 ms | sample %2 ms | polygonize %3 ms | "
@@ -267,7 +231,6 @@ void NodeEditorWidget::recompute()
                         .arg(result->triangles)
                         .arg(result->sampledPoints);
                 setStatus(summary);
-                Q_EMIT meshReady(result->mesh);
             });
 
     watcher->setFuture(QtConcurrent::run([snapshot]() {
@@ -293,36 +256,24 @@ void NodeEditorWidget::updateNodeTimings(const EvaluationResult& result)
 {
     for (const auto& profile : result.profiles) {
         if (auto* node = _model->delegateModel<NodeModelBase>(profile.id)) {
-            node->setTimingText(QStringLiteral("self %1 ms | build %2 us")
-                                    .arg(profile.exclusiveMs, 0, 'f', 2)
-                                    .arg(profile.buildMs * 1000.0, 0, 'f', 1));
+            const double share = result.benchmarkMs > 0.0
+                                     ? 100.0 * profile.exclusiveMs / result.benchmarkMs
+                                     : 0.0;
+            node->setTimingText(
+                QStringLiteral("self %1 ms | incl %2 ms\nshare %3% | build %4 us")
+                    .arg(profile.exclusiveMs, 0, 'f', 2)
+                    .arg(profile.inclusiveMs, 0, 'f', 2)
+                    .arg(share, 0, 'f', 1)
+                    .arg(profile.buildMs * 1000.0, 0, 'f', 0));
         }
     }
 
     for (const auto id : _model->allNodeIds()) {
         if (auto* output = _model->delegateModel<OutputNodeModel>(id)) {
-            output->setTimingText(QStringLiteral("mesh %1 ms")
-                                      .arg(result.polygonizeMs, 0, 'f', 2));
+            output->setTimingText(QStringLiteral("mesh %1 ms | graph %2 ms")
+                                      .arg(result.polygonizeMs, 0, 'f', 2)
+                                      .arg(result.totalMs, 0, 'f', 2));
+            output->setPreviewMesh(result.mesh);
         }
-    }
-}
-
-void NodeEditorWidget::updateProfileTable(const EvaluationResult& result)
-{
-    _profileTable->setRowCount(static_cast<int>(result.profiles.size()));
-
-    const double total = result.benchmarkMs;
-    for (int row = 0; row < static_cast<int>(result.profiles.size()); ++row) {
-        const auto& profile = result.profiles[row];
-
-        auto* name = new QTableWidgetItem(
-            QStringLiteral("%1 #%2").arg(profile.type).arg(profile.id));
-        _profileTable->setItem(row, 0, name);
-        _profileTable->setItem(row, 1, numericItem(profile.buildMs * 1000.0, 1));
-        _profileTable->setItem(row, 2, numericItem(profile.inclusiveMs, 2));
-        _profileTable->setItem(row, 3, numericItem(profile.exclusiveMs, 2));
-
-        const double share = total > 0.0 ? 100.0 * profile.exclusiveMs / total : 0.0;
-        _profileTable->setItem(row, 4, numericItem(share, 1));
     }
 }

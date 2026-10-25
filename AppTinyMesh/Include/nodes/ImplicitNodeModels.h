@@ -11,14 +11,18 @@
 #include "box.h"
 #include "mathematics.h"
 
+class Mesh;
+class MeshColor;
+class MeshWidget;
+class QCheckBox;
 class QDoubleSpinBox;
 class QFormLayout;
 class QLabel;
+class QRadioButton;
 class QSpinBox;
 class QTableWidget;
 
-class NodeModelBase : public QtNodes::NodeDelegateModel
-{
+class NodeModelBase : public QtNodes::NodeDelegateModel{
     Q_OBJECT
 
 public:
@@ -28,6 +32,7 @@ public:
 
 Q_SIGNALS:
     void parametersChanged();
+    void recomputeRequested();
 
 protected:
     virtual void buildParameters(QFormLayout* form);
@@ -40,8 +45,7 @@ protected:
     double _buildMs = 0.0;
 };
 
-class ImplicitFieldNode : public NodeModelBase
-{
+class ImplicitFieldNode : public NodeModelBase{
 public:
     using FieldPtr = AnalyticScalarField::ConstPtr;
 
@@ -66,8 +70,7 @@ protected:
     FieldPtr _field;
 };
 
-class BlobNodeModel : public ImplicitFieldNode
-{
+class BlobNodeModel : public ImplicitFieldNode{
 public:
     BlobNodeModel();
 
@@ -100,8 +103,7 @@ private:
     QDoubleSpinBox* _radiusBox = nullptr;
 };
 
-class ImplicitAddNodeModel : public ImplicitFieldNode
-{
+class ImplicitAddNodeModel : public ImplicitFieldNode{
 public:
     QString name() const override { return QStringLiteral("ImplicitAdd"); }
     QString caption() const override { return QStringLiteral("Add"); }
@@ -113,8 +115,7 @@ protected:
     void rebuildField() override;
 };
 
-class ThresholdNodeModel : public ImplicitFieldNode
-{
+class ThresholdNodeModel : public ImplicitFieldNode{
 public:
     ThresholdNodeModel();
 
@@ -138,8 +139,7 @@ private:
     QDoubleSpinBox* _thresholdBox = nullptr;
 };
 
-class BlobFieldNodeModel : public ImplicitFieldNode
-{
+class BlobFieldNodeModel : public ImplicitFieldNode{
 public:
     struct BlobSpec
     {
@@ -177,8 +177,7 @@ private:
     bool _updatingTable = false;
 };
 
-class OutputNodeModel : public NodeModelBase
-{
+class OutputNodeModel : public NodeModelBase{
 public:
     using FieldPtr = AnalyticScalarField::ConstPtr;
 
@@ -201,6 +200,8 @@ public:
     int resolution() const { return _resolution; }
     double epsilon() const { return _epsilon; }
 
+    void setPreviewMesh(const Mesh& mesh);
+
     QJsonObject save() const override;
     void load(const QJsonObject& data) override;
 
@@ -209,8 +210,12 @@ protected:
 
 private:
     void syncUi();
+    void applyPreviewMesh();
+    void applyPreviewMaterial();
+    void requestPreviewRepaint();
 
     std::shared_ptr<FieldData> _input;
+    std::shared_ptr<MeshColor> _previewMesh;
     Vector _center{0.0, 0.0, 0.0};
     double _halfSize = 2.5;
     int _resolution = 64;
@@ -223,5 +228,10 @@ private:
     QSpinBox* _resolutionBox = nullptr;
     QDoubleSpinBox* _epsilonBox = nullptr;
     QLabel* _connectionLabel = nullptr;
+    MeshWidget* _preview = nullptr;
+    QLabel* _vertexCountLabel = nullptr;
+    QLabel* _triangleCountLabel = nullptr;
+    QCheckBox* _wireframe = nullptr;
+    QRadioButton* _normalShading = nullptr;
+    QRadioButton* _colorShading = nullptr;
 };
-

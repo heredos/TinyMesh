@@ -180,6 +180,7 @@ protected:
 
 signals:
   void _signalUpdate();
+  void _signalCameraChanged();
   void _signalMouseMoveEdit(QMouseEvent*);
   void _signalMouseMove(QMouseEvent*);
   void _signalMouseRelease();

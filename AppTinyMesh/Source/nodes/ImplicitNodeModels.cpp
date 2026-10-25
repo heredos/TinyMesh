@@ -4,13 +4,17 @@
 #include <chrono>
 #include <functional>
 
+#include <QCheckBox>
 #include <QDoubleSpinBox>
 #include <QFormLayout>
+#include <QGraphicsProxyWidget>
+#include <QGraphicsScene>
 #include <QHBoxLayout>
 #include <QHeaderView>
 #include <QLabel>
 #include <QPalette>
 #include <QPushButton>
+#include <QRadioButton>
 #include <QSignalBlocker>
 #include <QSpinBox>
 #include <QTableWidget>
@@ -21,6 +25,7 @@
 #include "implicits/blob.h"
 #include "implicits/blobField.h"
 #include "implicits/threshold.h"
+#include "realtime.h"
 
 #include <QtNodes/StyleCollection>
 
@@ -125,7 +130,11 @@ QWidget* NodeModelBase::embeddedWidget()
     _timingLabel = new QLabel(_timingText.isEmpty() ? QStringLiteral("Not computed")
                                                    : _timingText);
     _timingLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-    _timingLabel->setToolTip(QStringLiteral("Inclusive sampled evaluation time"));
+    _timingLabel->setToolTip(
+        QStringLiteral("Self: inclusive sampled cost minus direct children.\n"
+                       "Incl: sampled cost including all inputs.\n"
+                       "Share: self / graph total.\n"
+                       "Build: field construction time."));
     QPalette timingPalette = _timingLabel->palette();
     timingPalette.setColor(QPalette::WindowText, QtNodes::StyleCollection::nodeStyle().FontColorFaded);
     _timingLabel->setPalette(timingPalette);
@@ -645,8 +654,131 @@ Box OutputNodeModel::box() const
     return Box(_center, _halfSize);
 }
 
+void OutputNodeModel::setPreviewMesh(const Mesh& mesh)
+{
+    std::vector<Color> colors(static_cast<std::size_t>(mesh.Vertexes()),
+                              Color(0.8, 0.8, 0.8));
+    _previewMesh = std::make_shared<MeshColor>(mesh, colors, mesh.VertexIndexes());
+    applyPreviewMesh();
+}
+
+void OutputNodeModel::applyPreviewMesh()
+{
+    if (_vertexCountLabel) {
+        _vertexCountLabel->setText(
+            QString::number(_previewMesh ? _previewMesh->Vertexes() : 0));
+    }
+    if (_triangleCountLabel) {
+        _triangleCountLabel->setText(
+            QString::number(_previewMesh ? _previewMesh->Triangles() : 0));
+    }
+
+    if (!_preview || !_previewMesh || !_preview->isValid()) {
+        requestPreviewRepaint();
+        return;
+    }
+
+    _preview->ClearAll();
+    _preview->AddMesh(QStringLiteral("Mesh"), *_previewMesh);
+    applyPreviewMaterial();
+}
+
+void OutputNodeModel::applyPreviewMaterial()
+{
+    if (!_preview)
+        return;
+
+    _preview->UseWireframeGlobal(_wireframe && _wireframe->isChecked());
+    const MeshMaterial material = (_colorShading && _colorShading->isChecked())
+                                      ? MeshMaterial::Color
+                                      : MeshMaterial::Normal;
+    _preview->SetMaterialGlobal(material);
+    requestPreviewRepaint();
+}
+
+void OutputNodeModel::requestPreviewRepaint()
+{
+    if (_preview)
+        _preview->update();
+
+    if (_widget) {
+        if (auto* proxy = _widget->graphicsProxyWidget()) {
+            proxy->update();
+            if (auto* scene = proxy->scene())
+                scene->update(proxy->sceneBoundingRect());
+        }
+    }
+
+    Q_EMIT requestNodeUpdate();
+}
+
 void OutputNodeModel::buildParameters(QFormLayout* form)
 {
+    _preview = new MeshWidget;
+    _preview->setFixedSize(360, 240);
+    _preview->setToolTip(QStringLiteral("Ctrl + left drag: rotate\n"
+                                        "Ctrl + right drag: zoom\n"
+                                        "Ctrl + middle drag: pan\n"
+                                        "Mouse wheel: zoom"));
+    connect(_preview, &MeshWidget::_signalCameraChanged, this, [this]() {
+        requestPreviewRepaint();
+    });
+    form->addRow(_preview);
+
+    auto* stats = new QWidget;
+    auto* statsLayout = new QHBoxLayout(stats);
+    statsLayout->setContentsMargins(0, 0, 0, 0);
+    statsLayout->setSpacing(6);
+    _vertexCountLabel = new QLabel(QStringLiteral("0"));
+    _triangleCountLabel = new QLabel(QStringLiteral("0"));
+    statsLayout->addWidget(new QLabel(QStringLiteral("Vertices")));
+    statsLayout->addWidget(_vertexCountLabel);
+    statsLayout->addSpacing(10);
+    statsLayout->addWidget(new QLabel(QStringLiteral("Triangles")));
+    statsLayout->addWidget(_triangleCountLabel);
+    statsLayout->addStretch(1);
+
+    auto* recomputeButton = new QPushButton(QStringLiteral("Recompute"));
+    recomputeButton->setToolTip(QStringLiteral("Rebuild the mesh from the node graph (F5)"));
+    statsLayout->addWidget(recomputeButton);
+    form->addRow(stats);
+
+    auto* viewControls = new QWidget;
+    auto* viewLayout = new QHBoxLayout(viewControls);
+    viewLayout->setContentsMargins(0, 0, 0, 0);
+    viewLayout->setSpacing(8);
+    _wireframe = new QCheckBox(QStringLiteral("Wireframe"));
+    _wireframe->setChecked(true);
+    _normalShading = new QRadioButton(QStringLiteral("Normal"));
+    _colorShading = new QRadioButton(QStringLiteral("Color"));
+    _normalShading->setChecked(true);
+    auto* resetCameraButton = new QPushButton(QStringLiteral("Reset camera"));
+    viewLayout->addWidget(_wireframe);
+    viewLayout->addWidget(_normalShading);
+    viewLayout->addWidget(_colorShading);
+    viewLayout->addStretch(1);
+    viewLayout->addWidget(resetCameraButton);
+    form->addRow(viewControls);
+
+    connect(_wireframe, &QCheckBox::toggled, this, [this](bool) {
+        applyPreviewMaterial();
+    });
+    connect(_normalShading, &QRadioButton::toggled, this, [this](bool) {
+        applyPreviewMaterial();
+    });
+    connect(_colorShading, &QRadioButton::toggled, this, [this](bool) {
+        applyPreviewMaterial();
+    });
+    connect(recomputeButton, &QPushButton::clicked, this, [this]() {
+        Q_EMIT recomputeRequested();
+    });
+    connect(resetCameraButton, &QPushButton::clicked, this, [this]() {
+        if (_preview) {
+            _preview->SetCamera(Camera(Vector(-10.0), Vector(0.0)));
+            requestPreviewRepaint();
+        }
+    });
+
     _cx = makeDoubleSpinBox(-100.0, 100.0, 0.1, 3, _center[0]);
     _cy = makeDoubleSpinBox(-100.0, 100.0, 0.1, 3, _center[1]);
     _cz = makeDoubleSpinBox(-100.0, 100.0, 0.1, 3, _center[2]);
@@ -685,6 +817,8 @@ void OutputNodeModel::buildParameters(QFormLayout* form)
     connect(_halfSizeBox, &QDoubleSpinBox::valueChanged, this, update);
     connect(_resolutionBox, &QSpinBox::valueChanged, this, update);
     connect(_epsilonBox, &QDoubleSpinBox::valueChanged, this, update);
+
+    applyPreviewMesh();
 }
 
 void OutputNodeModel::syncUi()

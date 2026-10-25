@@ -4,12 +4,10 @@
 
 #include <QWidget>
 
-#include "mesh.h"
 #include "nodes/GraphEvaluator.h"
 
 class QLabel;
 class QPushButton;
-class QTableWidget;
 
 namespace QtNodes {
 enum class NodeProcessingStatus : int;
@@ -33,7 +31,6 @@ public Q_SLOTS:
     void recompute();
 
 Q_SIGNALS:
-    void meshReady(const Mesh& mesh);
     void statusMessage(const QString& message);
 
 private:
@@ -41,7 +38,6 @@ private:
     void setStatus(const QString& text);
     void setNodeStatuses(QtNodes::NodeProcessingStatus status);
     void updateNodeTimings(const EvaluationResult& result);
-    void updateProfileTable(const EvaluationResult& result);
 
     std::shared_ptr<QtNodes::NodeDelegateModelRegistry> _registry;
     QtNodes::DataFlowGraphModel* _model = nullptr;
@@ -50,7 +46,6 @@ private:
 
     QPushButton* _recomputeButton = nullptr;
     QLabel* _statusLabel = nullptr;
-    QTableWidget* _profileTable = nullptr;
 
     quint64 _generation = 0;
     bool _busy = false;
