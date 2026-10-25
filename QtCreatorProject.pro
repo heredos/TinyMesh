@@ -23,6 +23,9 @@ SOURCES += \
     AppTinyMesh/Source/ray.cpp \
     AppTinyMesh/Source/shader-api.cpp \
     AppTinyMesh/Source/triangle.cpp \
+    AppTinyMesh/Source/implicits/blob.cpp \
+    AppTinyMesh/Source/implicits/add.cpp \
+    AppTinyMesh/Source/implicits/blobField.cpp \
 
 HEADERS += \
     AppTinyMesh/Include/box.h \
@@ -35,6 +38,10 @@ HEADERS += \
     AppTinyMesh/Include/qte.h \
     AppTinyMesh/Include/realtime.h \
     AppTinyMesh/Include/shader-api.h \
+    AppTinyMesh/Include/implicits/blob.h \
+    AppTinyMesh/Include/implicits/threshold.h \
+    AppTinyMesh/Include/implicits/add.h \
+    AppTinyMesh/Include/implicits/blobField.h \
 
 FORMS += \
     AppTinyMesh/UI/interface.ui
