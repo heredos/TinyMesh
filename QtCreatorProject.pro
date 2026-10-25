@@ -1,10 +1,14 @@
-QT += core gui opengl
+QT += core gui opengl concurrent
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 greaterThan(QT_MAJOR_VERSION, 5): QT += openglwidgets
 
-CONFIG += c++11
+CONFIG += c++17
+DEFINES += NODE_EDITOR_STATIC
 
 INCLUDEPATH += AppTinyMesh/Include
+INCLUDEPATH += external/nodeeditor/include
+INCLUDEPATH += external/nodeeditor/include/QtNodes/internal
+INCLUDEPATH += external/nodeeditor/src
 INCLUDEPATH += $$(GLEW_DIR)
 INCLUDEPATH += $$(OUT_PWD)
 
@@ -26,6 +30,33 @@ SOURCES += \
     AppTinyMesh/Source/implicits/blob.cpp \
     AppTinyMesh/Source/implicits/add.cpp \
     AppTinyMesh/Source/implicits/blobField.cpp \
+    AppTinyMesh/Source/nodes/GraphEvaluator.cpp \
+    AppTinyMesh/Source/nodes/ImplicitNodeModels.cpp \
+    AppTinyMesh/Source/nodes/NodeEditorWidget.cpp \
+    external/nodeeditor/src/AbstractGraphModel.cpp \
+    external/nodeeditor/src/AbstractNodeGeometry.cpp \
+    external/nodeeditor/src/BasicGraphicsScene.cpp \
+    external/nodeeditor/src/ConnectionGraphicsObject.cpp \
+    external/nodeeditor/src/ConnectionState.cpp \
+    external/nodeeditor/src/ConnectionStyle.cpp \
+    external/nodeeditor/src/DataFlowGraphModel.cpp \
+    external/nodeeditor/src/DataFlowGraphicsScene.cpp \
+    external/nodeeditor/src/DefaultConnectionPainter.cpp \
+    external/nodeeditor/src/DefaultHorizontalNodeGeometry.cpp \
+    external/nodeeditor/src/DefaultNodePainter.cpp \
+    external/nodeeditor/src/DefaultVerticalNodeGeometry.cpp \
+    external/nodeeditor/src/Definitions.cpp \
+    external/nodeeditor/src/GraphicsView.cpp \
+    external/nodeeditor/src/GraphicsViewStyle.cpp \
+    external/nodeeditor/src/NodeConnectionInteraction.cpp \
+    external/nodeeditor/src/NodeDelegateModel.cpp \
+    external/nodeeditor/src/NodeDelegateModelRegistry.cpp \
+    external/nodeeditor/src/NodeGraphicsObject.cpp \
+    external/nodeeditor/src/NodeState.cpp \
+    external/nodeeditor/src/NodeStyle.cpp \
+    external/nodeeditor/src/StyleCollection.cpp \
+    external/nodeeditor/src/UndoCommands.cpp \
+    external/nodeeditor/src/locateNode.cpp \
 
 HEADERS += \
     AppTinyMesh/Include/box.h \
@@ -42,9 +73,52 @@ HEADERS += \
     AppTinyMesh/Include/implicits/threshold.h \
     AppTinyMesh/Include/implicits/add.h \
     AppTinyMesh/Include/implicits/blobField.h \
+    AppTinyMesh/Include/nodes/FieldData.h \
+    AppTinyMesh/Include/nodes/GraphEvaluator.h \
+    AppTinyMesh/Include/nodes/ImplicitNodeModels.h \
+    AppTinyMesh/Include/nodes/NodeEditorWidget.h \
+    external/nodeeditor/include/QtNodes/internal/AbstractConnectionPainter.hpp \
+    external/nodeeditor/include/QtNodes/internal/AbstractGraphModel.hpp \
+    external/nodeeditor/include/QtNodes/internal/AbstractNodeGeometry.hpp \
+    external/nodeeditor/include/QtNodes/internal/AbstractNodePainter.hpp \
+    external/nodeeditor/include/QtNodes/internal/BasicGraphicsScene.hpp \
+    external/nodeeditor/include/QtNodes/internal/Compiler.hpp \
+    external/nodeeditor/include/QtNodes/internal/ConnectionGraphicsObject.hpp \
+    external/nodeeditor/include/QtNodes/internal/ConnectionIdHash.hpp \
+    external/nodeeditor/include/QtNodes/internal/ConnectionIdUtils.hpp \
+    external/nodeeditor/include/QtNodes/internal/ConnectionState.hpp \
+    external/nodeeditor/include/QtNodes/internal/ConnectionStyle.hpp \
+    external/nodeeditor/include/QtNodes/internal/DataFlowGraphicsScene.hpp \
+    external/nodeeditor/include/QtNodes/internal/DataFlowGraphModel.hpp \
+    external/nodeeditor/include/QtNodes/internal/DefaultConnectionPainter.hpp \
+    external/nodeeditor/include/QtNodes/internal/DefaultHorizontalNodeGeometry.hpp \
+    external/nodeeditor/include/QtNodes/internal/DefaultNodePainter.hpp \
+    external/nodeeditor/include/QtNodes/internal/DefaultVerticalNodeGeometry.hpp \
+    external/nodeeditor/include/QtNodes/internal/Definitions.hpp \
+    external/nodeeditor/include/QtNodes/internal/Export.hpp \
+    external/nodeeditor/include/QtNodes/internal/GraphicsView.hpp \
+    external/nodeeditor/include/QtNodes/internal/GraphicsViewStyle.hpp \
+    external/nodeeditor/include/QtNodes/internal/locateNode.hpp \
+    external/nodeeditor/include/QtNodes/internal/NodeConnectionInteraction.hpp \
+    external/nodeeditor/include/QtNodes/internal/NodeData.hpp \
+    external/nodeeditor/include/QtNodes/internal/NodeDelegateModel.hpp \
+    external/nodeeditor/include/QtNodes/internal/NodeDelegateModelRegistry.hpp \
+    external/nodeeditor/include/QtNodes/internal/NodeGraphicsObject.hpp \
+    external/nodeeditor/include/QtNodes/internal/NodeState.hpp \
+    external/nodeeditor/include/QtNodes/internal/NodeStyle.hpp \
+    external/nodeeditor/include/QtNodes/internal/OperatingSystem.hpp \
+    external/nodeeditor/include/QtNodes/internal/QStringStdHash.hpp \
+    external/nodeeditor/include/QtNodes/internal/QUuidStdHash.hpp \
+    external/nodeeditor/include/QtNodes/internal/Serializable.hpp \
+    external/nodeeditor/include/QtNodes/internal/Style.hpp \
+    external/nodeeditor/include/QtNodes/internal/StyleCollection.hpp \
+    external/nodeeditor/include/QtNodes/internal/UndoCommands.hpp \
 
 FORMS += \
     AppTinyMesh/UI/interface.ui
+
+RESOURCES += \
+    external/nodeeditor/resources/resources.qrc
 
 win32 {
     LIBS += -L$$(GLEW_DIR) -lglew32

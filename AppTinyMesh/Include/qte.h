@@ -9,6 +9,8 @@ QT_BEGIN_NAMESPACE
 	namespace Ui { class Assets; }
 QT_END_NAMESPACE
 
+class NodeEditorWidget;
+
 class MainWindow : public QMainWindow
 {
   Q_OBJECT
@@ -16,6 +18,7 @@ private:
   Ui::Assets* uiw;           //!< Interface
 
   MeshWidget* meshWidget;   //!< Viewer
+  NodeEditorWidget* nodeEditor;
   MeshColor meshColor;		//!< Mesh.
 
 public:
@@ -29,6 +32,7 @@ public slots:
   void editingSceneRight(const Ray&);
   void BoxMeshExample();
   void SphereImplicitExample();
+  void GraphMeshReady(const Mesh&);
   void ResetCamera();
   void UpdateMaterial();
 };

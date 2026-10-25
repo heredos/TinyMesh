@@ -16,6 +16,12 @@ class BlobField: public AnalyticScalarField{
 			childs  = 0;
 			left = right = nullptr;
 		}
+		~BlobField() override {
+			delete left;
+			delete right;
+		}
+		BlobField(const BlobField&) = delete;
+		BlobField& operator=(const BlobField&) = delete;
 		void add(Blob b);
 		double Value(const Vector& p) const override;
 		Vector Gradient(const Vector& p) const override;

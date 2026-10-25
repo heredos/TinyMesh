@@ -1,11 +1,11 @@
-#include "implicits/add.h"
-#include "implicits/blob.h"
-#include "implicits/blobField.h"
-#include "implicits/threshold.h"
-#include "mathematics.h"
 #include "qte.h"
-#include "implicits.h"
 #include "ui_interface.h"
+#include "nodes/NodeEditorWidget.h"
+
+#include <QAction>
+#include <QDockWidget>
+#include <QKeySequence>
+#include <QStatusBar>
 
 MainWindow::MainWindow() : QMainWindow(), uiw(new Ui::Assets)
 {
@@ -18,6 +18,21 @@ MainWindow::MainWindow() : QMainWindow(), uiw(new Ui::Assets)
 	GLlayout->addWidget(meshWidget, 0, 0);
 	GLlayout->setContentsMargins(0, 0, 0, 0);
 		uiw->widget_GL->setLayout(GLlayout);
+
+	nodeEditor = new NodeEditorWidget(this);
+	auto* graphDock = new QDockWidget(tr("Implicit Graph"), this);
+	graphDock->setObjectName("implicitGraphDock");
+	graphDock->setAllowedAreas(Qt::BottomDockWidgetArea | Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+	graphDock->setWidget(nodeEditor);
+	addDockWidget(Qt::BottomDockWidgetArea, graphDock);
+	resizeDocks({graphDock}, {320}, Qt::Vertical);
+
+	connect(nodeEditor, &NodeEditorWidget::meshReady, this, &MainWindow::GraphMeshReady);
+	connect(nodeEditor, &NodeEditorWidget::statusMessage, this, [this](const QString& message) {
+		statusBar()->showMessage(message, 10000);
+	});
+
+	uiw->sphereImplicit->setText(tr("Recompute Graph"));
 
 	// Creation des connect
 	CreateActions();
@@ -39,6 +54,10 @@ void MainWindow::CreateActions()
 		connect(uiw->wireframe, SIGNAL(clicked()), this, SLOT(UpdateMaterial()));
 		connect(uiw->radioShadingButton_1, SIGNAL(clicked()), this, SLOT(UpdateMaterial()));
 		connect(uiw->radioShadingButton_2, SIGNAL(clicked()), this, SLOT(UpdateMaterial()));
+
+	auto* recomputeAction = uiw->menuFile->addAction(tr("Recompute Graph"));
+	recomputeAction->setShortcut(QKeySequence(Qt::Key_F5));
+	connect(recomputeAction, &QAction::triggered, nodeEditor, &NodeEditorWidget::recompute);
 
 	// Widget edition
 	connect(meshWidget, SIGNAL(_signalEditSceneLeft(const Ray&)), this, SLOT(editingSceneLeft(const Ray&)));
@@ -66,41 +85,26 @@ void MainWindow::BoxMeshExample()
 	UpdateGeometry();
 }
 
-void MainWindow::SphereImplicitExample(){
-	/*
-	//AnalyticScalarField implicit;
-	Blob b1 = Blob(Vector(0.0, 0.0, -1.5), .5, .9);
-	Blob b2 = Blob(Vector(0.0, 0.0, 1.5), .5, .9);
-	ImplicitAdd add = ImplicitAdd(&b1, &b2);
-	Blob n1 = Blob(Vector(0.0, 0.0, -2.5), -.5, .9);
-	Blob n2 = Blob(Vector(0.0, 0.0, 2.5), -.5, .9);
-	ImplicitAdd neg = ImplicitAdd(&n1, &n2);
-	ImplicitAdd full = ImplicitAdd(&neg, &add);
-	Threshold implicit = Threshold(&full, .2);*/
+void MainWindow::SphereImplicitExample()
+{
+	nodeEditor->recompute();
+}
 
-	Blob b = Blob(Vector(0), .2, .1);
-	BlobField bf = BlobField(b);
-	for (int i=0; i<1000; i++){
-		bf.add(Blob(Vector(rand()%200/100.0-1, rand()%200/100.0-1, rand()%200/100.0-1), .1, .1));
-	}
-	Threshold implicit = Threshold(&bf, .2);
-
-	Mesh implicitMesh;
-	implicit.Polygonize(128, implicitMesh, Box(4.0));
-
+void MainWindow::GraphMeshReady(const Mesh& mesh)
+{
 	std::vector<Color> cols;
-	cols.resize(implicitMesh.Vertexes());
-	for (size_t i = 0; i < cols.size(); i++)
-		cols[i] = Color(0.8, 0.8, 0.8);
+	cols.resize(mesh.Vertexes());
+	for (auto& color : cols)
+		color = Color(0.8, 0.8, 0.8);
 
-	meshColor = MeshColor(implicitMesh, cols, implicitMesh.VertexIndexes());
+	meshColor = MeshColor(mesh, cols, mesh.VertexIndexes());
 	UpdateGeometry();
 }
 
 void MainWindow::UpdateGeometry()
 {
 	meshWidget->ClearAll();
-	meshWidget->AddMesh("BoxMesh", meshColor);
+	meshWidget->AddMesh("Mesh", meshColor);
 
 		uiw->lineEdit->setText(QString::number(meshColor.Vertexes()));
 		uiw->lineEdit_2->setText(QString::number(meshColor.Triangles()));

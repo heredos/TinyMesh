@@ -2,13 +2,16 @@
 #include "implicits.h"
 #include "mathematics.h"
 
+#include <utility>
+
 class ImplicitAdd: public AnalyticScalarField{
 	private:
-	AnalyticScalarField* a;
-	AnalyticScalarField* b;
+	ConstPtr a;
+	ConstPtr b;
 
 	public:
-		ImplicitAdd(AnalyticScalarField* a, AnalyticScalarField* b) : a(a), b(b) {}
+		ImplicitAdd(ConstPtr a, ConstPtr b) : a(std::move(a)), b(std::move(b)) {}
+		ImplicitAdd(AnalyticScalarField* a, AnalyticScalarField* b) : ImplicitAdd(Borrow(a), Borrow(b)) {}
 		double Value(const Vector& p) const override;
 		Vector Gradient(const Vector& p) const override;
 		Vector Normal(const Vector& p) const override;

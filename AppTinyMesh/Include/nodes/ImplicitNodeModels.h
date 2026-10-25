@@ -1,0 +1,226 @@
+#pragma once
+
+#include <memory>
+#include <vector>
+
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QtNodes/NodeDelegateModel>
+
+#include "FieldData.h"
+#include "box.h"
+#include "mathematics.h"
+
+class QDoubleSpinBox;
+class QFormLayout;
+class QLabel;
+class QSpinBox;
+class QTableWidget;
+
+class NodeModelBase : public QtNodes::NodeDelegateModel
+{
+    Q_OBJECT
+
+public:
+    QWidget* embeddedWidget() override;
+    void setTimingText(const QString& text);
+    double buildMs() const { return _buildMs; }
+
+Q_SIGNALS:
+    void parametersChanged();
+
+protected:
+    virtual void buildParameters(QFormLayout* form);
+    void setBuildTime(double ms) { _buildMs = ms; }
+
+    QWidget* _widget = nullptr;
+    QLabel* _timingLabel = nullptr;
+    QString _timingText;
+    double _buildMs = 0.0;
+};
+
+class ImplicitFieldNode : public NodeModelBase
+{
+public:
+    using FieldPtr = AnalyticScalarField::ConstPtr;
+
+    unsigned int nPorts(QtNodes::PortType portType) const override;
+    QtNodes::NodeDataType dataType(QtNodes::PortType portType,
+                                   QtNodes::PortIndex portIndex) const override;
+    std::shared_ptr<QtNodes::NodeData> outData(QtNodes::PortIndex port) override;
+    void setInData(std::shared_ptr<QtNodes::NodeData> data,
+                   QtNodes::PortIndex port) override;
+
+    FieldPtr field() const { return _field; }
+    void refresh();
+
+    virtual unsigned int inputCount() const = 0;
+
+protected:
+    virtual void rebuildField() = 0;
+    void rebuildAndEmit();
+
+    std::vector<std::shared_ptr<FieldData>> _inputs;
+    std::shared_ptr<FieldData> _output;
+    FieldPtr _field;
+};
+
+class BlobNodeModel : public ImplicitFieldNode
+{
+public:
+    BlobNodeModel();
+
+    QString name() const override { return QStringLiteral("Blob"); }
+    QString caption() const override { return QStringLiteral("Blob"); }
+    QString portCaption(QtNodes::PortType portType,
+                        QtNodes::PortIndex) const override;
+    unsigned int inputCount() const override { return 0; }
+
+    void setParameters(const Vector& position, double peak, double radius);
+
+    QJsonObject save() const override;
+    void load(const QJsonObject& data) override;
+
+protected:
+    void rebuildField() override;
+    void buildParameters(QFormLayout* form) override;
+
+private:
+    void syncUi();
+
+    Vector _position{0.0, 0.0, 0.0};
+    double _peak = 1.0;
+    double _radius = 0.8;
+
+    QDoubleSpinBox* _x = nullptr;
+    QDoubleSpinBox* _y = nullptr;
+    QDoubleSpinBox* _z = nullptr;
+    QDoubleSpinBox* _peakBox = nullptr;
+    QDoubleSpinBox* _radiusBox = nullptr;
+};
+
+class ImplicitAddNodeModel : public ImplicitFieldNode
+{
+public:
+    QString name() const override { return QStringLiteral("ImplicitAdd"); }
+    QString caption() const override { return QStringLiteral("Add"); }
+    QString portCaption(QtNodes::PortType portType,
+                        QtNodes::PortIndex portIndex) const override;
+    unsigned int inputCount() const override { return 2; }
+
+protected:
+    void rebuildField() override;
+};
+
+class ThresholdNodeModel : public ImplicitFieldNode
+{
+public:
+    ThresholdNodeModel();
+
+    QString name() const override { return QStringLiteral("Threshold"); }
+    QString caption() const override { return QStringLiteral("Threshold"); }
+    QString portCaption(QtNodes::PortType portType,
+                        QtNodes::PortIndex) const override;
+    unsigned int inputCount() const override { return 1; }
+
+    QJsonObject save() const override;
+    void load(const QJsonObject& data) override;
+
+protected:
+    void rebuildField() override;
+    void buildParameters(QFormLayout* form) override;
+
+private:
+    void syncUi();
+
+    double _threshold = 0.5;
+    QDoubleSpinBox* _thresholdBox = nullptr;
+};
+
+class BlobFieldNodeModel : public ImplicitFieldNode
+{
+public:
+    struct BlobSpec
+    {
+        Vector position{0.0, 0.0, 0.0};
+        double peak = 1.0;
+        double radius = 0.8;
+    };
+
+    BlobFieldNodeModel();
+
+    QString name() const override { return QStringLiteral("BlobField"); }
+    QString caption() const override { return QStringLiteral("Blob Field"); }
+    QString portCaption(QtNodes::PortType portType,
+                        QtNodes::PortIndex) const override;
+    unsigned int inputCount() const override { return 0; }
+
+    void setBlobs(std::vector<BlobSpec> blobs);
+    const std::vector<BlobSpec>& blobs() const { return _blobs; }
+
+    QJsonObject save() const override;
+    void load(const QJsonObject& data) override;
+
+protected:
+    void rebuildField() override;
+    void buildParameters(QFormLayout* form) override;
+
+private:
+    void addRow(const BlobSpec& blob, bool updateModel = true);
+    void removeSelectedRows();
+    void readTable();
+    void syncUi();
+
+    std::vector<BlobSpec> _blobs;
+    QTableWidget* _table = nullptr;
+    bool _updatingTable = false;
+};
+
+class OutputNodeModel : public NodeModelBase
+{
+public:
+    using FieldPtr = AnalyticScalarField::ConstPtr;
+
+    OutputNodeModel();
+
+    QString name() const override { return QStringLiteral("MeshOutput"); }
+    QString caption() const override { return QStringLiteral("Mesh Output"); }
+    QString portCaption(QtNodes::PortType portType,
+                        QtNodes::PortIndex) const override;
+
+    unsigned int nPorts(QtNodes::PortType portType) const override;
+    QtNodes::NodeDataType dataType(QtNodes::PortType portType,
+                                   QtNodes::PortIndex portIndex) const override;
+    std::shared_ptr<QtNodes::NodeData> outData(QtNodes::PortIndex port) override;
+    void setInData(std::shared_ptr<QtNodes::NodeData> data,
+                   QtNodes::PortIndex port) override;
+
+    FieldPtr field() const;
+    Box box() const;
+    int resolution() const { return _resolution; }
+    double epsilon() const { return _epsilon; }
+
+    QJsonObject save() const override;
+    void load(const QJsonObject& data) override;
+
+protected:
+    void buildParameters(QFormLayout* form) override;
+
+private:
+    void syncUi();
+
+    std::shared_ptr<FieldData> _input;
+    Vector _center{0.0, 0.0, 0.0};
+    double _halfSize = 2.5;
+    int _resolution = 64;
+    double _epsilon = 1.0e-4;
+
+    QDoubleSpinBox* _cx = nullptr;
+    QDoubleSpinBox* _cy = nullptr;
+    QDoubleSpinBox* _cz = nullptr;
+    QDoubleSpinBox* _halfSizeBox = nullptr;
+    QSpinBox* _resolutionBox = nullptr;
+    QDoubleSpinBox* _epsilonBox = nullptr;
+    QLabel* _connectionLabel = nullptr;
+};
+

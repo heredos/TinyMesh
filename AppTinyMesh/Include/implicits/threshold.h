@@ -2,12 +2,15 @@
 #include "implicits.h"
 #include "mathematics.h"
 
+#include <utility>
+
 class Threshold : public AnalyticScalarField{
 	private:
-		AnalyticScalarField* field;
+		ConstPtr field;
 		double threshold;
 	public:
-		Threshold(AnalyticScalarField* object, double threshold): field(object), threshold(threshold){}
+		Threshold(ConstPtr object, double threshold): field(std::move(object)), threshold(threshold){}
+		Threshold(AnalyticScalarField* object, double threshold): Threshold(Borrow(object), threshold){}
 		double Value(const Vector& p) const override {
 			return field->Value(p) - threshold;
 		}

@@ -3,14 +3,23 @@
 #pragma once
 
 #include <iostream>
+#include <memory>
 
 #include "mesh.h"
 
 class AnalyticScalarField
 {
-protected:
 public:
+  using Ptr = std::shared_ptr<AnalyticScalarField>;
+  using ConstPtr = std::shared_ptr<const AnalyticScalarField>;
+
+  static ConstPtr Borrow(const AnalyticScalarField* field)
+  {
+    return ConstPtr(field, [](const AnalyticScalarField*) {});
+  }
+
   AnalyticScalarField();
+  virtual ~AnalyticScalarField() = default;
   virtual double Value(const Vector&) const;
   virtual Vector Gradient(const Vector&) const;
 

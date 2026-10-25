@@ -1,11 +1,11 @@
-cmake_minimum_required (VERSION 3.1)
+cmake_minimum_required (VERSION 3.21)
 
 project(AppTinyMesh)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Widgets Gui OpenGL OpenGLWidgets)
+find_package(Qt6 REQUIRED COMPONENTS Core Widgets Gui OpenGL OpenGLWidgets Concurrent)
 if (Qt6Widgets_FOUND)
     if (Qt6Widgets_VERSION VERSION_LESS 6.3.0)
         message(FATAL_ERROR "Minimum Qt version is 6.3.0")
@@ -25,6 +25,12 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 endif()
 
 # Add dependencies
+set(BUILD_TESTING OFF CACHE BOOL "Build unit tests" FORCE)
+set(BUILD_EXAMPLES OFF CACHE BOOL "Build QtNodes examples" FORCE)
+set(BUILD_DOCS OFF CACHE BOOL "Build QtNodes documentation" FORCE)
+set(USE_QT6 ON CACHE BOOL "Build QtNodes with Qt6" FORCE)
+add_subdirectory(external/nodeeditor)
+
 find_package(OpenMP)
 if(OPENMP_FOUND)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
@@ -37,14 +43,17 @@ set(APP AppTinyMesh)
 set(SRC_DIR AppTinyMesh/Source)
 set(INC_DIR AppTinyMesh/Include)
 include_directories(${INC_DIR})
+set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_CURRENT_SOURCE_DIR}/AppTinyMesh/UI)
 aux_source_directory(${SRC_DIR} SRC_FILES)
+aux_source_directory(${SRC_DIR}/nodes NODE_SRC_FILES)
+aux_source_directory(${SRC_DIR}/implicits IMPLICIT_SRC_FILES)
 add_executable(${APP} WIN32 
     ${SRC_FILES}
+    ${NODE_SRC_FILES}
+    ${IMPLICIT_SRC_FILES}
     ${INC_DIR}/box.h
     ${INC_DIR}/camera.h
     ${INC_DIR}/color.h
-    ${INC_DIR}/GL.h
-    ${INC_DIR}/glew.h
     ${INC_DIR}/implicits.h
     ${INC_DIR}/mathematics.h
     ${INC_DIR}/mesh.h
@@ -53,6 +62,10 @@ add_executable(${APP} WIN32
     ${INC_DIR}/ray.h
     ${INC_DIR}/realtime.h
     ${INC_DIR}/shader-api.h
+    ${INC_DIR}/nodes/FieldData.h
+    ${INC_DIR}/nodes/GraphEvaluator.h
+    ${INC_DIR}/nodes/ImplicitNodeModels.h
+    ${INC_DIR}/nodes/NodeEditorWidget.h
 )
 set_target_properties(${APP} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR})
 
@@ -86,6 +99,11 @@ else()
         Qt6::OpenGLWidgets
     )
 endif()
+
+target_link_libraries(${APP}
+    QtNodes::QtNodes
+    Qt6::Concurrent
+)
 
 # shader folder copy on post build (all platforms)
 set(DATA_DIR AppTinyMesh/Shaders)
