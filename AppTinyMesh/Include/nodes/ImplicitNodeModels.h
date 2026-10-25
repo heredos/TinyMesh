@@ -32,6 +32,7 @@ Q_SIGNALS:
 protected:
     virtual void buildParameters(QFormLayout* form);
     void setBuildTime(double ms) { _buildMs = ms; }
+    void refreshWidgetGeometry();
 
     QWidget* _widget = nullptr;
     QLabel* _timingLabel = nullptr;

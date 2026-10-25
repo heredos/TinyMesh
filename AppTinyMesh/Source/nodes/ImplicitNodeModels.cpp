@@ -9,6 +9,7 @@
 #include <QHBoxLayout>
 #include <QHeaderView>
 #include <QLabel>
+#include <QPalette>
 #include <QPushButton>
 #include <QSignalBlocker>
 #include <QSpinBox>
@@ -20,6 +21,8 @@
 #include "implicits/blob.h"
 #include "implicits/blobField.h"
 #include "implicits/threshold.h"
+
+#include <QtNodes/StyleCollection>
 
 namespace {
 
@@ -34,7 +37,51 @@ QDoubleSpinBox* makeDoubleSpinBox(double minimum,
     box->setSingleStep(step);
     box->setDecimals(decimals);
     box->setValue(value);
+    box->setMinimumWidth(90);
+    box->setMaximumWidth(120);
+    box->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     return box;
+}
+
+void applyNodePalette(QWidget* widget)
+{
+    const auto& nodeStyle = QtNodes::StyleCollection::nodeStyle();
+
+    const QColor text = nodeStyle.FontColor;
+    const QColor faded = nodeStyle.FontColorFaded;
+    const QColor base = nodeStyle.GradientColor2.darker(115);
+    const QColor alternate = nodeStyle.GradientColor2.darker(105);
+    const QColor button = nodeStyle.GradientColor2.lighter(135);
+    const QColor border = nodeStyle.ConnectionPointColor.darker(145);
+    const QColor accent = nodeStyle.FilledConnectionPointColor;
+
+    QPalette palette = widget->palette();
+    palette.setColor(QPalette::Window, Qt::transparent);
+    palette.setColor(QPalette::WindowText, text);
+    palette.setColor(QPalette::Base, base);
+    palette.setColor(QPalette::AlternateBase, alternate);
+    palette.setColor(QPalette::Text, text);
+    palette.setColor(QPalette::Button, button);
+    palette.setColor(QPalette::ButtonText, text);
+    palette.setColor(QPalette::BrightText, text);
+    palette.setColor(QPalette::Highlight, accent);
+    palette.setColor(QPalette::HighlightedText, Qt::black);
+    palette.setColor(QPalette::ToolTipBase, button);
+    palette.setColor(QPalette::ToolTipText, text);
+    palette.setColor(QPalette::Mid, border);
+    palette.setColor(QPalette::Midlight, border.lighter(125));
+    palette.setColor(QPalette::Dark, border.darker(150));
+    palette.setColor(QPalette::Light, border.lighter(150));
+    palette.setColor(QPalette::Shadow, nodeStyle.ShadowColor);
+    palette.setColor(QPalette::Link, accent);
+    palette.setColor(QPalette::LinkVisited, accent.darker(120));
+    palette.setColor(QPalette::Disabled, QPalette::Base, base.darker(105));
+    palette.setColor(QPalette::Disabled, QPalette::Text, faded);
+    palette.setColor(QPalette::Disabled, QPalette::WindowText, faded);
+    palette.setColor(QPalette::Disabled, QPalette::ButtonText, faded);
+
+    widget->setPalette(palette);
+    widget->setAutoFillBackground(false);
 }
 
 double elapsedMs(const std::chrono::steady_clock::time_point& start)
@@ -58,31 +105,54 @@ QWidget* NodeModelBase::embeddedWidget()
         return _widget;
 
     _widget = new QWidget;
+    applyNodePalette(_widget);
+
     auto* layout = new QVBoxLayout(_widget);
     layout->setContentsMargins(4, 4, 4, 4);
-    layout->setSpacing(4);
+    layout->setSpacing(3);
 
     auto* form = new QFormLayout;
     form->setContentsMargins(0, 0, 0, 0);
-    form->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
+    form->setFieldGrowthPolicy(QFormLayout::FieldsStayAtSizeHint);
+    form->setLabelAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    form->setFormAlignment(Qt::AlignLeft | Qt::AlignTop);
+    form->setHorizontalSpacing(6);
+    form->setVerticalSpacing(3);
     layout->addLayout(form);
 
     buildParameters(form);
 
-    _timingLabel = new QLabel(_timingText.isEmpty() ? QStringLiteral("not computed")
+    _timingLabel = new QLabel(_timingText.isEmpty() ? QStringLiteral("Not computed")
                                                    : _timingText);
-    _timingLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    _timingLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     _timingLabel->setToolTip(QStringLiteral("Inclusive sampled evaluation time"));
+    QPalette timingPalette = _timingLabel->palette();
+    timingPalette.setColor(QPalette::WindowText, QtNodes::StyleCollection::nodeStyle().FontColorFaded);
+    _timingLabel->setPalette(timingPalette);
     layout->addWidget(_timingLabel);
 
+    _widget->adjustSize();
     return _widget;
 }
 
 void NodeModelBase::setTimingText(const QString& text)
 {
     _timingText = text;
-    if (_timingLabel)
+    if (_timingLabel) {
         _timingLabel->setText(text);
+        refreshWidgetGeometry();
+    }
+}
+
+void NodeModelBase::refreshWidgetGeometry()
+{
+    if (!_widget)
+        return;
+
+    if (auto* layout = _widget->layout())
+        layout->activate();
+    _widget->adjustSize();
+    Q_EMIT requestNodeUpdate();
 }
 
 void NodeModelBase::buildParameters(QFormLayout*)
@@ -367,8 +437,8 @@ void BlobFieldNodeModel::buildParameters(QFormLayout* form)
     _table->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     _table->verticalHeader()->setVisible(false);
     _table->setSelectionBehavior(QAbstractItemView::SelectRows);
-    _table->setMinimumWidth(360);
-    _table->setMaximumHeight(180);
+    _table->setMinimumWidth(320);
+    _table->setMaximumHeight(150);
     form->addRow(_table);
 
     auto* buttons = new QWidget;
@@ -409,6 +479,7 @@ void BlobFieldNodeModel::addRow(const BlobSpec& blob, bool updateModel)
     if (updateModel) {
         _blobs.push_back(blob);
         rebuildAndEmit();
+        refreshWidgetGeometry();
     }
 }
 
@@ -463,6 +534,7 @@ void BlobFieldNodeModel::readTable()
 
     _blobs = std::move(blobs);
     rebuildAndEmit();
+    refreshWidgetGeometry();
 }
 
 void BlobFieldNodeModel::syncUi()
@@ -482,6 +554,11 @@ void BlobFieldNodeModel::syncUi()
         _table->setItem(row, 4, makeItem(blob.radius));
     }
     _updatingTable = false;
+    if (_widget) {
+        if (auto* layout = _widget->layout())
+            layout->activate();
+        _widget->adjustSize();
+    }
 }
 
 QJsonObject BlobFieldNodeModel::save() const
@@ -519,6 +596,7 @@ void BlobFieldNodeModel::load(const QJsonObject& data)
     }
     rebuildAndEmit();
     syncUi();
+    refreshWidgetGeometry();
 }
 
 OutputNodeModel::OutputNodeModel() = default;
@@ -553,6 +631,7 @@ void OutputNodeModel::setInData(std::shared_ptr<QtNodes::NodeData> data,
         _connectionLabel->setText(_input && _input->field() ? QStringLiteral("connected")
                                                            : QStringLiteral("no field"));
     }
+    refreshWidgetGeometry();
     Q_EMIT parametersChanged();
 }
 
@@ -576,6 +655,9 @@ void OutputNodeModel::buildParameters(QFormLayout* form)
     _resolutionBox->setRange(8, 512);
     _resolutionBox->setSingleStep(8);
     _resolutionBox->setValue(_resolution);
+    _resolutionBox->setMinimumWidth(90);
+    _resolutionBox->setMaximumWidth(120);
+    _resolutionBox->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     _epsilonBox = makeDoubleSpinBox(1.0e-8, 1.0, 1.0e-5, 8, _epsilon);
 
     form->addRow(QStringLiteral("Center X"), _cx);
@@ -649,5 +731,6 @@ void OutputNodeModel::load(const QJsonObject& data)
     _resolution = data.value("resolution").toInt(_resolution);
     _epsilon = data.value("epsilon").toDouble(_epsilon);
     syncUi();
+    refreshWidgetGeometry();
     Q_EMIT parametersChanged();
 }
