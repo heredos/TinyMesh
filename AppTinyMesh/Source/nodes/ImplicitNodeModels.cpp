@@ -24,6 +24,7 @@
 #include "implicits/add.h"
 #include "implicits/blob.h"
 #include "implicits/blobField.h"
+#include "implicits/sphere.h"
 #include "implicits/threshold.h"
 #include "realtime.h"
 
@@ -308,6 +309,89 @@ void BlobNodeModel::load(const QJsonObject& data)
                        data.value("y").toDouble(_position[1]),
                        data.value("z").toDouble(_position[2]));
     _peak = data.value("peak").toDouble(_peak);
+    _radius = data.value("radius").toDouble(_radius);
+    rebuildAndEmit();
+    syncUi();
+}
+
+SphereNodeModel::SphereNodeModel()
+{
+    rebuildAndEmit();
+}
+
+QString SphereNodeModel::portCaption(QtNodes::PortType portType,
+                                     QtNodes::PortIndex) const
+{
+    return portType == QtNodes::PortType::Out ? QStringLiteral("Out") : QString();
+}
+
+void SphereNodeModel::rebuildField()
+{
+    _field = std::make_shared<Sphere>(_position, _radius);
+}
+
+void SphereNodeModel::setParameters(const Vector& position, double radius)
+{
+    _position = position;
+    _radius = radius;
+    rebuildAndEmit();
+    syncUi();
+}
+
+void SphereNodeModel::buildParameters(QFormLayout* form)
+{
+    _x = makeDoubleSpinBox(-100.0, 100.0, 0.1, 3, _position[0]);
+    _y = makeDoubleSpinBox(-100.0, 100.0, 0.1, 3, _position[1]);
+    _z = makeDoubleSpinBox(-100.0, 100.0, 0.1, 3, _position[2]);
+    _radiusBox = makeDoubleSpinBox(0.001, 100.0, 0.05, 4, _radius);
+
+    form->addRow(QStringLiteral("X"), _x);
+    form->addRow(QStringLiteral("Y"), _y);
+    form->addRow(QStringLiteral("Z"), _z);
+    form->addRow(QStringLiteral("Radius"), _radiusBox);
+
+    const auto update = [this]() {
+        _position = Vector(_x->value(), _y->value(), _z->value());
+        _radius = _radiusBox->value();
+        rebuildAndEmit();
+    };
+
+    connect(_x, &QDoubleSpinBox::valueChanged, this, update);
+    connect(_y, &QDoubleSpinBox::valueChanged, this, update);
+    connect(_z, &QDoubleSpinBox::valueChanged, this, update);
+    connect(_radiusBox, &QDoubleSpinBox::valueChanged, this, update);
+}
+
+void SphereNodeModel::syncUi()
+{
+    if (!_x)
+        return;
+
+    const QSignalBlocker bx(_x);
+    const QSignalBlocker by(_y);
+    const QSignalBlocker bz(_z);
+    const QSignalBlocker br(_radiusBox);
+    _x->setValue(_position[0]);
+    _y->setValue(_position[1]);
+    _z->setValue(_position[2]);
+    _radiusBox->setValue(_radius);
+}
+
+QJsonObject SphereNodeModel::save() const
+{
+    QJsonObject json = NodeDelegateModel::save();
+    json["x"] = _position[0];
+    json["y"] = _position[1];
+    json["z"] = _position[2];
+    json["radius"] = _radius;
+    return json;
+}
+
+void SphereNodeModel::load(const QJsonObject& data)
+{
+    _position = Vector(data.value("x").toDouble(_position[0]),
+                       data.value("y").toDouble(_position[1]),
+                       data.value("z").toDouble(_position[2]));
     _radius = data.value("radius").toDouble(_radius);
     rebuildAndEmit();
     syncUi();

@@ -103,6 +103,37 @@ private:
     QDoubleSpinBox* _radiusBox = nullptr;
 };
 
+class SphereNodeModel : public ImplicitFieldNode{
+public:
+    SphereNodeModel();
+
+    QString name() const override { return QStringLiteral("Sphere"); }
+    QString caption() const override { return QStringLiteral("Sphere"); }
+    QString portCaption(QtNodes::PortType portType,
+                        QtNodes::PortIndex) const override;
+    unsigned int inputCount() const override { return 0; }
+
+    void setParameters(const Vector& position, double radius);
+
+    QJsonObject save() const override;
+    void load(const QJsonObject& data) override;
+
+protected:
+    void rebuildField() override;
+    void buildParameters(QFormLayout* form) override;
+
+private:
+    void syncUi();
+
+    Vector _position{0.0, 0.0, 0.0};
+    double _radius = 1.0;
+
+    QDoubleSpinBox* _x = nullptr;
+    QDoubleSpinBox* _y = nullptr;
+    QDoubleSpinBox* _z = nullptr;
+    QDoubleSpinBox* _radiusBox = nullptr;
+};
+
 class ImplicitAddNodeModel : public ImplicitFieldNode{
 public:
     QString name() const override { return QStringLiteral("ImplicitAdd"); }

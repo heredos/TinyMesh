@@ -30,6 +30,7 @@ SOURCES += \
     AppTinyMesh/Source/implicits/blob.cpp \
     AppTinyMesh/Source/implicits/add.cpp \
     AppTinyMesh/Source/implicits/blobField.cpp \
+    AppTinyMesh/Source/implicits/sphere.cpp \
     AppTinyMesh/Source/nodes/GraphEvaluator.cpp \
     AppTinyMesh/Source/nodes/ImplicitNodeModels.cpp \
     AppTinyMesh/Source/nodes/NodeEditorWidget.cpp \
@@ -73,6 +74,7 @@ HEADERS += \
     AppTinyMesh/Include/implicits/threshold.h \
     AppTinyMesh/Include/implicits/add.h \
     AppTinyMesh/Include/implicits/blobField.h \
+    AppTinyMesh/Include/implicits/sphere.h \
     AppTinyMesh/Include/nodes/FieldData.h \
     AppTinyMesh/Include/nodes/GraphEvaluator.h \
     AppTinyMesh/Include/nodes/ImplicitNodeModels.h \
