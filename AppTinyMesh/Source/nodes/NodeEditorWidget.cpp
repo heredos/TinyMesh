@@ -1,6 +1,7 @@
 #include "nodes/NodeEditorWidget.h"
 
 #include <algorithm>
+#include <unordered_map>
 
 #include <QAction>
 #include <QtConcurrent/QtConcurrentRun>
@@ -9,6 +10,7 @@
 #include <QLabel>
 #include <QMenu>
 #include <QPushButton>
+#include <QStringList>
 #include <QTimer>
 #include <QVBoxLayout>
 
@@ -68,7 +70,7 @@ void NodeEditorWidget::buildUi()
     toolbar->setContentsMargins(0, 0, 0, 0);
 
     _recomputeButton = new QPushButton(QStringLiteral("Recompute"));
-    _recomputeButton->setToolTip(QStringLiteral("Rebuild the mesh from the node graph (F5)"));
+    _recomputeButton->setToolTip(QStringLiteral("Rebuild all meshes from the node graph (F5)"));
     auto* demoButton = new QPushButton(QStringLiteral("Demo"));
     auto* saveButton = new QPushButton(QStringLiteral("Save graph"));
     auto* loadButton = new QPushButton(QStringLiteral("Load graph"));
@@ -140,7 +142,7 @@ void NodeEditorWidget::buildUi()
                     connect(node, &NodeModelBase::parametersChanged, this,
                             [this]() { ++_generation; });
                     connect(node, &NodeModelBase::recomputeRequested, this,
-                            &NodeEditorWidget::recompute);
+                            [this, id]() { recomputeOutput(id); });
                 }
             });
 }
@@ -205,10 +207,9 @@ void NodeEditorWidget::recompute()
                 _busy = false;
                 _recomputeButton->setEnabled(true);
 
-                if (!result || !result->success) {
+                if (!result) {
                     setNodeStatuses(QtNodes::NodeProcessingStatus::Failed);
-                    setStatus(result ? result->error
-                                     : QStringLiteral("Evaluation failed."));
+                    setStatus(QStringLiteral("Evaluation failed."));
                     return;
                 }
 
@@ -219,20 +220,145 @@ void NodeEditorWidget::recompute()
                     return;
                 }
 
-                setNodeStatuses(QtNodes::NodeProcessingStatus::Updated);
+                int successfulOutputs = 0;
+                for (const auto& output : result->outputs) {
+                    if (output.success)
+                        ++successfulOutputs;
+                }
 
+                setNodeStatuses(successfulOutputs > 0
+                                    ? QtNodes::NodeProcessingStatus::Updated
+                                    : QtNodes::NodeProcessingStatus::Failed);
                 updateNodeTimings(*result);
 
-                const QString summary =
-                    QStringLiteral("Total %1 ms | sample %2 ms | polygonize %3 ms | "
-                                   "%4 vertices | %5 triangles | %6 samples")
+                for (const auto& output : result->outputs) {
+                    if (output.success)
+                        continue;
+                    if (auto* node = _model->delegateModel<OutputNodeModel>(output.id))
+                        node->setNodeProcessingStatus(QtNodes::NodeProcessingStatus::Failed);
+                }
+
+                QStringList failures;
+                for (int i = 0; i < static_cast<int>(result->outputs.size()); ++i) {
+                    const auto& output = result->outputs[static_cast<std::size_t>(i)];
+                    if (!output.success) {
+                        failures << QStringLiteral("Output %1: %2")
+                                        .arg(i + 1)
+                                        .arg(output.error);
+                    }
+                }
+
+                if (!result->success) {
+                    QString status = result->error.isEmpty()
+                                         ? QStringLiteral("No output could be evaluated.")
+                                         : result->error;
+                    if (!failures.isEmpty())
+                        status += QStringLiteral("\n") + failures.join(QStringLiteral(" | "));
+                    setStatus(status);
+                    return;
+                }
+
+                QString summary =
+                    QStringLiteral("%1/%2 outputs | total %3 ms | sample %4 ms | "
+                                   "polygonize %5 ms | %6 vertices | %7 triangles | %8 samples")
+                        .arg(successfulOutputs)
+                        .arg(result->outputs.size())
                         .arg(result->totalMs, 0, 'f', 2)
                         .arg(result->benchmarkMs, 0, 'f', 2)
                         .arg(result->polygonizeMs, 0, 'f', 2)
                         .arg(result->vertices)
                         .arg(result->triangles)
                         .arg(result->sampledPoints);
+                if (!failures.isEmpty())
+                    summary += QStringLiteral("\n") + failures.join(QStringLiteral(" | "));
                 setStatus(summary);
+            });
+
+    watcher->setFuture(QtConcurrent::run([snapshot]() {
+        return GraphEvaluator::evaluate(snapshot);
+    }));
+}
+
+void NodeEditorWidget::recomputeOutput(unsigned int outputId)
+{
+    if (_busy)
+        return;
+
+    auto* outputNode = _model->delegateModel<OutputNodeModel>(outputId);
+    if (!outputNode) {
+        setStatus(QStringLiteral("Mesh Output node not found."));
+        return;
+    }
+
+    QString error;
+    auto snapshot = GraphEvaluator::captureOutput(*_model, outputId, error);
+    if (!snapshot) {
+        outputNode->setNodeProcessingStatus(QtNodes::NodeProcessingStatus::Failed);
+        outputNode->clearPreview();
+        setStatus(error);
+        return;
+    }
+
+    _busy = true;
+    _recomputeButton->setEnabled(false);
+    outputNode->setNodeProcessingStatus(QtNodes::NodeProcessingStatus::Processing);
+    setStatus(QStringLiteral("Computing Mesh Output..."));
+
+    const quint64 requestGeneration = _generation;
+    auto* watcher = new QFutureWatcher<std::shared_ptr<EvaluationResult>>(this);
+
+    connect(watcher, &QFutureWatcherBase::finished, this,
+            [this, watcher, requestGeneration, outputId]() {
+                const auto result = watcher->result();
+                watcher->deleteLater();
+
+                _busy = false;
+                _recomputeButton->setEnabled(true);
+
+                auto* node = _model->delegateModel<OutputNodeModel>(outputId);
+                if (!node) {
+                    setStatus(QStringLiteral("Mesh Output node no longer exists."));
+                    return;
+                }
+
+                if (!result) {
+                    node->setNodeProcessingStatus(QtNodes::NodeProcessingStatus::Failed);
+                    node->setTimingText(QStringLiteral("error: evaluation failed"));
+                    node->clearPreview();
+                    setStatus(QStringLiteral("Mesh Output evaluation failed."));
+                    return;
+                }
+
+                if (requestGeneration != _generation) {
+                    node->setNodeProcessingStatus(QtNodes::NodeProcessingStatus::Pending);
+                    setStatus(QStringLiteral("Graph changed during computation. "
+                                             "Recompute the Mesh Output again."));
+                    return;
+                }
+
+                if (!result->success || result->outputs.empty()) {
+                    QString message = result->error;
+                    if (!result->outputs.empty()
+                        && !result->outputs.front().error.isEmpty()) {
+                        message = result->outputs.front().error;
+                    }
+                    if (message.isEmpty())
+                        message = QStringLiteral("Mesh Output evaluation failed.");
+
+                    node->setNodeProcessingStatus(QtNodes::NodeProcessingStatus::Failed);
+                    node->setTimingText(QStringLiteral("error: %1").arg(message));
+                    node->clearPreview();
+                    setStatus(QStringLiteral("Mesh Output failed: %1").arg(message));
+                    return;
+                }
+
+                const auto& output = result->outputs.front();
+                node->setNodeProcessingStatus(QtNodes::NodeProcessingStatus::Updated);
+                node->setTimingText(
+                    QStringLiteral("mesh %1 ms").arg(output.polygonizeMs, 0, 'f', 2));
+                node->setPreviewMesh(output.mesh);
+                setStatus(QStringLiteral("Mesh Output recomputed in %1 ms.")
+                              .arg(output.polygonizeMs, 0, 'f', 2));
             });
 
     watcher->setFuture(QtConcurrent::run([snapshot]() {
@@ -270,12 +396,33 @@ void NodeEditorWidget::updateNodeTimings(const EvaluationResult& result)
         }
     }
 
+    std::unordered_map<unsigned int, const OutputResult*> outputResults;
+    for (const auto& output : result.outputs)
+        outputResults[output.id] = &output;
+
     for (const auto id : _model->allNodeIds()) {
-        if (auto* output = _model->delegateModel<OutputNodeModel>(id)) {
-            output->setTimingText(QStringLiteral("mesh %1 ms | graph %2 ms")
-                                      .arg(result.polygonizeMs, 0, 'f', 2)
-                                      .arg(result.totalMs, 0, 'f', 2));
-            output->setPreviewMesh(result.mesh);
+        auto* output = _model->delegateModel<OutputNodeModel>(id);
+        if (!output)
+            continue;
+
+        const auto found = outputResults.find(id);
+        if (found == outputResults.end()) {
+            output->setTimingText(QStringLiteral("not evaluated"));
+            output->clearPreview();
+            continue;
         }
+
+        const auto& outputResult = *found->second;
+        if (!outputResult.success) {
+            output->setTimingText(
+                QStringLiteral("error: %1").arg(outputResult.error));
+            output->clearPreview();
+            continue;
+        }
+
+        output->setTimingText(QStringLiteral("mesh %1 ms | graph %2 ms")
+                                  .arg(outputResult.polygonizeMs, 0, 'f', 2)
+                                  .arg(result.totalMs, 0, 'f', 2));
+        output->setPreviewMesh(outputResult.mesh);
     }
 }

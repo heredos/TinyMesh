@@ -232,6 +232,7 @@ public:
     double epsilon() const { return _epsilon; }
 
     void setPreviewMesh(const Mesh& mesh);
+    void clearPreview();
 
     QJsonObject save() const override;
     void load(const QJsonObject& data) override;

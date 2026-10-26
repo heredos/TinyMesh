@@ -746,6 +746,12 @@ void OutputNodeModel::setPreviewMesh(const Mesh& mesh)
     applyPreviewMesh();
 }
 
+void OutputNodeModel::clearPreview()
+{
+    _previewMesh.reset();
+    applyPreviewMesh();
+}
+
 void OutputNodeModel::applyPreviewMesh()
 {
     if (_vertexCountLabel) {
@@ -757,13 +763,14 @@ void OutputNodeModel::applyPreviewMesh()
             QString::number(_previewMesh ? _previewMesh->Triangles() : 0));
     }
 
-    if (!_preview || !_previewMesh || !_preview->isValid()) {
+    if (!_preview || !_preview->isValid()) {
         requestPreviewRepaint();
         return;
     }
 
     _preview->ClearAll();
-    _preview->AddMesh(QStringLiteral("Mesh"), *_previewMesh);
+    if (_previewMesh)
+        _preview->AddMesh(QStringLiteral("Mesh"), *_previewMesh);
     applyPreviewMaterial();
 }
 
@@ -823,7 +830,7 @@ void OutputNodeModel::buildParameters(QFormLayout* form)
     statsLayout->addStretch(1);
 
     auto* recomputeButton = new QPushButton(QStringLiteral("Recompute"));
-    recomputeButton->setToolTip(QStringLiteral("Rebuild the mesh from the node graph (F5)"));
+    recomputeButton->setToolTip(QStringLiteral("Rebuild only this Mesh Output node."));
     statsLayout->addWidget(recomputeButton);
     form->addRow(stats);
 

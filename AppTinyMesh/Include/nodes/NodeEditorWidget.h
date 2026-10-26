@@ -38,6 +38,7 @@ private:
     void setStatus(const QString& text);
     void setNodeStatuses(QtNodes::NodeProcessingStatus status);
     void updateNodeTimings(const EvaluationResult& result);
+    void recomputeOutput(unsigned int outputId);
 
     std::shared_ptr<QtNodes::NodeDelegateModelRegistry> _registry;
     QtNodes::DataFlowGraphModel* _model = nullptr;
