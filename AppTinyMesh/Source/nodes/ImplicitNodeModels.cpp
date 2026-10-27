@@ -25,6 +25,7 @@
 #include "implicits/blob.h"
 #include "implicits/blobField.h"
 #include "implicits/sphere.h"
+#include "implicits/rectangle.h"
 #include "implicits/threshold.h"
 #include "realtime.h"
 
@@ -393,6 +394,106 @@ void SphereNodeModel::load(const QJsonObject& data)
                        data.value("y").toDouble(_position[1]),
                        data.value("z").toDouble(_position[2]));
     _radius = data.value("radius").toDouble(_radius);
+    rebuildAndEmit();
+    syncUi();
+}
+
+RectangleNodeModel::RectangleNodeModel()
+{
+    rebuildAndEmit();
+}
+
+QString RectangleNodeModel::portCaption(QtNodes::PortType portType,
+                                        QtNodes::PortIndex) const
+{
+    return portType == QtNodes::PortType::In ? QString() : QStringLiteral("Field");
+}
+
+void RectangleNodeModel::rebuildField()
+{
+    _field = std::make_shared<Rectangle>(_point1, _point2);
+}
+
+void RectangleNodeModel::setParameters(const Vector& point1, const Vector& point2)
+{
+    _point1 = point1;
+    _point2 = point2;
+    if (_x1) _x1->setValue(_point1[0]);
+    if (_y1) _y1->setValue(_point1[1]);
+    if (_z1) _z1->setValue(_point1[2]);
+    if (_x2) _x2->setValue(_point2[0]);
+    if (_y2) _y2->setValue(_point2[1]);
+    if (_z2) _z2->setValue(_point2[2]);
+    syncUi();
+    rebuildAndEmit();
+}
+
+void RectangleNodeModel::buildParameters(QFormLayout* form)
+{
+    _x1 = makeDoubleSpinBox(-100.0, 100.0, 0.1, 3, _point1[0]);
+    _y1 = makeDoubleSpinBox(-100.0, 100.0, 0.1, 3, _point1[1]);
+    _z1 = makeDoubleSpinBox(-100.0, 100.0, 0.1, 3, _point1[2]);
+    _x2 = makeDoubleSpinBox(-100.0, 100.0, 0.1, 3, _point2[0]);
+    _y2 = makeDoubleSpinBox(-100.0, 100.0, 0.1, 3, _point2[1]);
+    _z2 = makeDoubleSpinBox(-100.0, 100.0, 0.1, 3, _point2[2]);
+
+    form->addRow(QStringLiteral("Point1 X"), _x1);
+    form->addRow(QStringLiteral("Point1 Y"), _y1);
+    form->addRow(QStringLiteral("Point1 Z"), _z1);
+    form->addRow(QStringLiteral("Point2 X"), _x2);
+    form->addRow(QStringLiteral("Point2 Y"), _y2);
+    form->addRow(QStringLiteral("Point2 Z"), _z2);
+
+    const auto update = [this]() {
+        _point1 = Vector(_x1->value(), _y1->value(), _z1->value());
+        _point2 = Vector(_x2->value(), _y2->value(), _z2->value());
+        syncUi();
+        rebuildAndEmit();
+        Q_EMIT parametersChanged();
+    };
+
+    connect(_x1, &QDoubleSpinBox::valueChanged, this, update);
+    connect(_y1, &QDoubleSpinBox::valueChanged, this, update);
+    connect(_z1, &QDoubleSpinBox::valueChanged, this, update);
+    connect(_x2, &QDoubleSpinBox::valueChanged, this, update);
+    connect(_y2, &QDoubleSpinBox::valueChanged, this, update);
+    connect(_z2, &QDoubleSpinBox::valueChanged, this, update);
+}
+
+void RectangleNodeModel::syncUi()
+{
+    if (!_x1 || !_y1 || !_z1 || !_x2 || !_y2 || !_z2)
+        return;
+
+    const QSignalBlocker b1(_x1), b2(_y1), b3(_z1), b4(_x2), b5(_y2), b6(_z2);
+    _x1->setValue(_point1[0]);
+    _y1->setValue(_point1[1]);
+    _z1->setValue(_point1[2]);
+    _x2->setValue(_point2[0]);
+    _y2->setValue(_point2[1]);
+    _z2->setValue(_point2[2]);
+}
+
+QJsonObject RectangleNodeModel::save() const
+{
+    QJsonObject json = NodeDelegateModel::save();
+    json["x1"] = _point1[0];
+    json["y1"] = _point1[1];
+    json["z1"] = _point1[2];
+    json["x2"] = _point2[0];
+    json["y2"] = _point2[1];
+    json["z2"] = _point2[2];
+    return json;
+}
+
+void RectangleNodeModel::load(const QJsonObject& data)
+{
+    _point1 = Vector(data.value("x1").toDouble(_point1[0]),
+                      data.value("y1").toDouble(_point1[1]),
+                      data.value("z1").toDouble(_point1[2]));
+    _point2 = Vector(data.value("x2").toDouble(_point2[0]),
+                      data.value("y2").toDouble(_point2[1]),
+                      data.value("z2").toDouble(_point2[2]));
     rebuildAndEmit();
     syncUi();
 }

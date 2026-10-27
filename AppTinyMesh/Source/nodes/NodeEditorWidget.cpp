@@ -28,6 +28,7 @@ std::shared_ptr<QtNodes::NodeDelegateModelRegistry> createRegistry()
     auto registry = std::make_shared<QtNodes::NodeDelegateModelRegistry>();
     registry->registerModel<BlobNodeModel>("Generators");
     registry->registerModel<SphereNodeModel>("Generators");
+    registry->registerModel<RectangleNodeModel>("Generators");
     registry->registerModel<BlobFieldNodeModel>("Generators");
     registry->registerModel<ImplicitAddNodeModel>("Operators");
     registry->registerModel<ThresholdNodeModel>("Operators");
@@ -98,6 +99,7 @@ void NodeEditorWidget::buildUi()
         };
         addAction(QStringLiteral("Blob"), QStringLiteral("Blob"));
         addAction(QStringLiteral("Sphere"), QStringLiteral("Sphere"));
+        addAction(QStringLiteral("Rectangle"), QStringLiteral("Rectangle"));
         addAction(QStringLiteral("Blob Field"), QStringLiteral("BlobField"));
         addAction(QStringLiteral("Implicit Add"), QStringLiteral("ImplicitAdd"));
         addAction(QStringLiteral("Threshold"), QStringLiteral("Threshold"));
