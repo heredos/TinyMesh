@@ -14,11 +14,10 @@ double Rectangle::Value(const Vector& p) const {
 	double add = 0;
 	double max = -INFINITY;
 	for (int i=0; i<3; i++){
-		if (v[i]>max){
+		if (v[i]>max)
 			max = v[i];
 		if (v[i]>0)
 			add += v[i]*v[i];
-		}
 	}
 	if (max>0){
 		return sqrt(add);
