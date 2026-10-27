@@ -762,6 +762,7 @@ void MeshWidget::mouseReleaseEvent(QMouseEvent*)
 void MeshWidget::mouseDoubleClickEvent(QMouseEvent* e)
 {
     emit _signalMouseMove(e);
+    emit _signalDoubleClicked();
     update();
 }
 

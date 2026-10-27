@@ -155,6 +155,8 @@ public:
   void DisableMesh(const QString&);
 
   Ray ComputeRay(const QPoint&) const;
+  const Camera& GetCamera() const { return camera; }
+  bool GetPerspectiveProjection() const { return perspectiveProjection; }
   void SetCamera(const Camera&);
 
   void SetCameraMode(bool);
@@ -181,6 +183,7 @@ protected:
 signals:
   void _signalUpdate();
   void _signalCameraChanged();
+  void _signalDoubleClicked();
   void _signalMouseMoveEdit(QMouseEvent*);
   void _signalMouseMove(QMouseEvent*);
   void _signalMouseRelease();

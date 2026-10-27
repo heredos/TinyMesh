@@ -795,6 +795,13 @@ void BlobFieldNodeModel::load(const QJsonObject& data)
 
 OutputNodeModel::OutputNodeModel() = default;
 
+OutputNodeModel::~OutputNodeModel()
+{
+    delete _previewWindow;
+    _previewWindow = nullptr;
+    _detachedPreview = nullptr;
+}
+
 QString OutputNodeModel::portCaption(QtNodes::PortType portType,
                                      QtNodes::PortIndex) const
 {
@@ -864,27 +871,33 @@ void OutputNodeModel::applyPreviewMesh()
             QString::number(_previewMesh ? _previewMesh->Triangles() : 0));
     }
 
-    if (!_preview || !_preview->isValid()) {
-        requestPreviewRepaint();
-        return;
-    }
+    const auto updateView = [this](MeshWidget* view) {
+        if (!view || !view->isValid())
+            return;
 
-    _preview->ClearAll();
-    if (_previewMesh)
-        _preview->AddMesh(QStringLiteral("Mesh"), *_previewMesh);
+        view->ClearAll();
+        if (_previewMesh)
+            view->AddMesh(QStringLiteral("Mesh"), *_previewMesh);
+    };
+
+    updateView(_preview);
+    updateView(_detachedPreview);
     applyPreviewMaterial();
 }
 
 void OutputNodeModel::applyPreviewMaterial()
 {
-    if (!_preview)
-        return;
-
-    _preview->UseWireframeGlobal(_wireframe && _wireframe->isChecked());
+    const bool wireframe = _wireframe && _wireframe->isChecked();
     const MeshMaterial material = (_colorShading && _colorShading->isChecked())
                                       ? MeshMaterial::Color
                                       : MeshMaterial::Normal;
-    _preview->SetMaterialGlobal(material);
+
+    for (MeshWidget* view : {_preview, _detachedPreview}) {
+        if (!view)
+            continue;
+        view->UseWireframeGlobal(wireframe);
+        view->SetMaterialGlobal(material);
+    }
     requestPreviewRepaint();
 }
 
@@ -892,6 +905,8 @@ void OutputNodeModel::requestPreviewRepaint()
 {
     if (_preview)
         _preview->update();
+    if (_detachedPreview)
+        _detachedPreview->update();
 
     if (_widget) {
         if (auto* proxy = _widget->graphicsProxyWidget()) {
@@ -904,6 +919,49 @@ void OutputNodeModel::requestPreviewRepaint()
     Q_EMIT requestNodeUpdate();
 }
 
+void OutputNodeModel::openPreviewWindow()
+{
+    if (!_previewWindow) {
+        _previewWindow = new QWidget(nullptr, Qt::Window);
+        _previewWindow->setAttribute(Qt::WA_NativeWindow);
+        _previewWindow->setWindowTitle(QStringLiteral("Mesh Output Preview"));
+
+        auto* layout = new QVBoxLayout(_previewWindow);
+        layout->setContentsMargins(0, 0, 0, 0);
+
+        _detachedPreview = new MeshWidget;
+        _detachedPreview->setMinimumSize(480, 360);
+        _detachedPreview->setToolTip(QStringLiteral("Ctrl + left drag: rotate\n"
+                                                    "Ctrl + right drag: zoom\n"
+                                                    "Ctrl + middle drag: pan\n"
+                                                    "Mouse wheel: zoom"));
+        layout->addWidget(_detachedPreview);
+
+        connect(_detachedPreview, &MeshWidget::_signalCameraChanged, this, [this]() {
+            requestPreviewRepaint();
+        });
+        connect(_detachedPreview, &MeshWidget::_signalUpdate, this, [this]() {
+            if (_detachedPreviewNeedsSync && _detachedPreview->isValid()) {
+                _detachedPreviewNeedsSync = false;
+                applyPreviewMesh();
+            }
+        });
+
+        if (_preview && _preview->isValid()) {
+            _detachedPreview->SetCameraMode(_preview->GetPerspectiveProjection());
+            _detachedPreview->SetCamera(_preview->GetCamera());
+        }
+
+        _previewWindow->resize(640, 480);
+        _detachedPreviewNeedsSync = true;
+        applyPreviewMesh();
+    }
+
+    _previewWindow->show();
+    _previewWindow->raise();
+    _previewWindow->activateWindow();
+}
+
 void OutputNodeModel::buildParameters(QFormLayout* form)
 {
     _preview = new MeshWidget;
@@ -911,9 +969,13 @@ void OutputNodeModel::buildParameters(QFormLayout* form)
     _preview->setToolTip(QStringLiteral("Ctrl + left drag: rotate\n"
                                         "Ctrl + right drag: zoom\n"
                                         "Ctrl + middle drag: pan\n"
-                                        "Mouse wheel: zoom"));
+                                        "Mouse wheel: zoom\n"
+                                        "Double-click: open in a new window"));
     connect(_preview, &MeshWidget::_signalCameraChanged, this, [this]() {
         requestPreviewRepaint();
+    });
+    connect(_preview, &MeshWidget::_signalDoubleClicked, this, [this]() {
+        openPreviewWindow();
     });
     form->addRow(_preview);
 

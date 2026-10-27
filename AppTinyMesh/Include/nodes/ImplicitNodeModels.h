@@ -246,6 +246,7 @@ public:
     using FieldPtr = AnalyticScalarField::ConstPtr;
 
     OutputNodeModel();
+    ~OutputNodeModel() override;
 
     QString name() const override { return QStringLiteral("MeshOutput"); }
     QString caption() const override { return QStringLiteral("Mesh Output"); }
@@ -278,6 +279,7 @@ private:
     void applyPreviewMesh();
     void applyPreviewMaterial();
     void requestPreviewRepaint();
+    void openPreviewWindow();
 
     std::shared_ptr<FieldData> _input;
     std::shared_ptr<MeshColor> _previewMesh;
@@ -294,6 +296,9 @@ private:
     QDoubleSpinBox* _epsilonBox = nullptr;
     QLabel* _connectionLabel = nullptr;
     MeshWidget* _preview = nullptr;
+    QWidget* _previewWindow = nullptr;
+    MeshWidget* _detachedPreview = nullptr;
+    bool _detachedPreviewNeedsSync = false;
     QLabel* _vertexCountLabel = nullptr;
     QLabel* _triangleCountLabel = nullptr;
     QCheckBox* _wireframe = nullptr;
