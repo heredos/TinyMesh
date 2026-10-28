@@ -29,7 +29,7 @@ Vector Rectangle::Gradient(const Vector& p) const {
 	Vector p1p = p1-p;
 	Vector p2p = p-p2;
 	Vector v = Vector();
-	bool allin = true;
+	bool allin = true; // 私ラッキースターラッキースター！
 	double max = -INFINITY;
 	for (int i=0; i<3; i++){
 		if (p1p[i] > p2p[i]){
