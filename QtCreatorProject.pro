@@ -32,6 +32,7 @@ SOURCES += \
     AppTinyMesh/Source/implicits/blobField.cpp \
     AppTinyMesh/Source/implicits/sphere.cpp \
     AppTinyMesh/Source/implicits/rectangle.cpp \
+    AppTinyMesh/Source/implicits/rotate.cpp \
     AppTinyMesh/Source/nodes/GraphEvaluator.cpp \
     AppTinyMesh/Source/nodes/ImplicitNodeModels.cpp \
     AppTinyMesh/Source/nodes/NodeEditorWidget.cpp \
@@ -77,6 +78,8 @@ HEADERS += \
     AppTinyMesh/Include/implicits/blobField.h \
     AppTinyMesh/Include/implicits/sphere.h \
     AppTinyMesh/Include/implicits/rectangle.h \
+    AppTinyMesh/Include/implicits/move.h \
+    AppTinyMesh/Include/implicits/rotate.h \
     AppTinyMesh/Include/nodes/FieldData.h \
     AppTinyMesh/Include/nodes/GraphEvaluator.h \
     AppTinyMesh/Include/nodes/ImplicitNodeModels.h \

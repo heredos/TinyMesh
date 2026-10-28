@@ -33,6 +33,8 @@ std::shared_ptr<QtNodes::NodeDelegateModelRegistry> createRegistry()
     registry->registerModel<ImplicitAddNodeModel>("Operators");
     registry->registerModel<ThresholdNodeModel>("Operators");
     registry->registerModel<OutputNodeModel>("Output");
+    registry->registerModel<MoveNodeModel>("Operators");
+    registry->registerModel<RotateNodeModel>("Operators");
     return registry;
 }
 
@@ -104,6 +106,8 @@ void NodeEditorWidget::buildUi()
         addAction(QStringLiteral("Implicit Add"), QStringLiteral("ImplicitAdd"));
         addAction(QStringLiteral("Threshold"), QStringLiteral("Threshold"));
         addAction(QStringLiteral("Mesh Output"), QStringLiteral("MeshOutput"));
+        addAction(QStringLiteral("Move"), QStringLiteral("Move"));
+        addAction(QStringLiteral("Rotate"), QStringLiteral("Rotate"));
 
         QAction* selected = menu.exec(_view->viewport()->mapToGlobal(pos));
         if (!selected)

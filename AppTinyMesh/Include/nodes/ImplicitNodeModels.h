@@ -179,6 +179,58 @@ protected:
     void rebuildField() override;
 };
 
+class MoveNodeModel : public ImplicitFieldNode{
+public:
+    MoveNodeModel();
+
+    QString name() const override { return QStringLiteral("Move"); }
+    QString caption() const override { return QStringLiteral("Move"); }
+    QString portCaption(QtNodes::PortType portType,
+                        QtNodes::PortIndex) const override;
+    unsigned int inputCount() const override { return 1; }
+
+    QJsonObject save() const override;
+    void load(const QJsonObject& data) override;
+
+protected:
+    void rebuildField() override;
+    void buildParameters(QFormLayout* form) override;
+
+private:
+    void syncUi();
+
+    Vector _offset{0.0, 0.0, 0.0};
+    QDoubleSpinBox* _x = nullptr;
+    QDoubleSpinBox* _y = nullptr;
+    QDoubleSpinBox* _z = nullptr;
+};
+
+class RotateNodeModel : public ImplicitFieldNode{
+public:
+    RotateNodeModel();
+
+    QString name() const override { return QStringLiteral("Rotate"); }
+    QString caption() const override { return QStringLiteral("Rotate"); }
+    QString portCaption(QtNodes::PortType portType,
+                        QtNodes::PortIndex) const override;
+    unsigned int inputCount() const override { return 1; }
+
+    QJsonObject save() const override;
+    void load(const QJsonObject& data) override;
+
+protected:
+    void rebuildField() override;
+    void buildParameters(QFormLayout* form) override;
+
+private:
+    void syncUi();
+
+    Vector _rotation{0.0, 0.0, 0.0};
+    QDoubleSpinBox* _x = nullptr;
+    QDoubleSpinBox* _y = nullptr;
+    QDoubleSpinBox* _z = nullptr;
+};
+
 class ThresholdNodeModel : public ImplicitFieldNode{
 public:
     ThresholdNodeModel();

@@ -24,9 +24,14 @@
 #include "implicits/add.h"
 #include "implicits/blob.h"
 #include "implicits/blobField.h"
+#include "implicits/rotate.h"
 #include "implicits/sphere.h"
 #include "implicits/rectangle.h"
 #include "implicits/threshold.h"
+#include "implicits/translate.h"
+#include "implicits/blobField.h"
+#include "implicits/move.h"
+#include "implicits/rotate.h"
 #include "realtime.h"
 
 #include <QtNodes/StyleCollection>
@@ -517,6 +522,158 @@ void ImplicitAddNodeModel::rebuildField()
     }
 
     _field = std::make_shared<ImplicitAdd>(_inputs[0]->field(), _inputs[1]->field());
+}
+
+MoveNodeModel::MoveNodeModel()
+{
+    rebuildAndEmit();
+}
+
+QString MoveNodeModel::portCaption(QtNodes::PortType portType,
+                                   QtNodes::PortIndex) const
+{
+    if (portType == QtNodes::PortType::In)
+        return QStringLiteral("Field");
+    if (portType == QtNodes::PortType::Out)
+        return QStringLiteral("Out");
+    return QString();
+}
+
+void MoveNodeModel::rebuildField()
+{
+    if (_inputs.empty() || !_inputs[0] || !_inputs[0]->field()) {
+        _field.reset();
+        return;
+    }
+
+    _field = std::make_shared<ImplicitMove>(_inputs[0]->field(), _offset);
+}
+
+void MoveNodeModel::buildParameters(QFormLayout* form)
+{
+    _x = makeDoubleSpinBox(-100.0, 100.0, 0.1, 3, _offset[0]);
+    _y = makeDoubleSpinBox(-100.0, 100.0, 0.1, 3, _offset[1]);
+    _z = makeDoubleSpinBox(-100.0, 100.0, 0.1, 3, _offset[2]);
+
+    form->addRow(QStringLiteral("X"), _x);
+    form->addRow(QStringLiteral("Y"), _y);
+    form->addRow(QStringLiteral("Z"), _z);
+
+    const auto update = [this]() {
+        _offset = Vector(_x->value(), _y->value(), _z->value());
+        rebuildAndEmit();
+    };
+
+    connect(_x, &QDoubleSpinBox::valueChanged, this, update);
+    connect(_y, &QDoubleSpinBox::valueChanged, this, update);
+    connect(_z, &QDoubleSpinBox::valueChanged, this, update);
+}
+
+void MoveNodeModel::syncUi()
+{
+    if (!_x)
+        return;
+
+    const QSignalBlocker bx(_x);
+    const QSignalBlocker by(_y);
+    const QSignalBlocker bz(_z);
+    _x->setValue(_offset[0]);
+    _y->setValue(_offset[1]);
+    _z->setValue(_offset[2]);
+}
+
+QJsonObject MoveNodeModel::save() const
+{
+    QJsonObject json = NodeDelegateModel::save();
+    json["x"] = _offset[0];
+    json["y"] = _offset[1];
+    json["z"] = _offset[2];
+    return json;
+}
+
+void MoveNodeModel::load(const QJsonObject& data)
+{
+    _offset = Vector(data.value("x").toDouble(_offset[0]),
+                     data.value("y").toDouble(_offset[1]),
+                     data.value("z").toDouble(_offset[2]));
+    rebuildAndEmit();
+    syncUi();
+}
+
+RotateNodeModel::RotateNodeModel()
+{
+    rebuildAndEmit();
+}
+
+QString RotateNodeModel::portCaption(QtNodes::PortType portType,
+                                     QtNodes::PortIndex) const
+{
+    if (portType == QtNodes::PortType::In)
+        return QStringLiteral("Field");
+    if (portType == QtNodes::PortType::Out)
+        return QStringLiteral("Out");
+    return QString();
+}
+
+void RotateNodeModel::rebuildField()
+{
+    if (_inputs.empty() || !_inputs[0] || !_inputs[0]->field()) {
+        _field.reset();
+        return;
+    }
+
+    _field = std::make_shared<ImplicitRotation>(_inputs[0]->field(), _rotation);
+}
+
+void RotateNodeModel::buildParameters(QFormLayout* form)
+{
+    _x = makeDoubleSpinBox(-3.15, 3.15, 0.01, 2, _rotation[0]);
+    _y = makeDoubleSpinBox(-3.15, 3.15, 0.01, 2, _rotation[1]);
+    _z = makeDoubleSpinBox(-3.15, 3.15, 0.01, 2, _rotation[2]);
+
+    form->addRow(QStringLiteral("X (rad)"), _x);
+    form->addRow(QStringLiteral("Y (rad)"), _y);
+    form->addRow(QStringLiteral("Z (rad)"), _z);
+
+    const auto update = [this]() {
+        _rotation = Vector(_x->value(), _y->value(), _z->value());
+        rebuildAndEmit();
+    };
+
+    connect(_x, &QDoubleSpinBox::valueChanged, this, update);
+    connect(_y, &QDoubleSpinBox::valueChanged, this, update);
+    connect(_z, &QDoubleSpinBox::valueChanged, this, update);
+}
+
+void RotateNodeModel::syncUi()
+{
+    if (!_x)
+        return;
+
+    const QSignalBlocker bx(_x);
+    const QSignalBlocker by(_y);
+    const QSignalBlocker bz(_z);
+    _x->setValue(_rotation[0]);
+    _y->setValue(_rotation[1]);
+    _z->setValue(_rotation[2]);
+}
+
+QJsonObject RotateNodeModel::save() const
+{
+    QJsonObject json = NodeDelegateModel::save();
+    json["x"] = _rotation[0];
+    json["y"] = _rotation[1];
+    json["z"] = _rotation[2];
+    return json;
+}
+
+void RotateNodeModel::load(const QJsonObject& data)
+{
+    _rotation = Vector(data.value("x").toDouble(_rotation[0]),
+                       data.value("y").toDouble(_rotation[1]),
+                       data.value("z").toDouble(_rotation[2]));
+    rebuildAndEmit();
+    syncUi();
 }
 
 ThresholdNodeModel::ThresholdNodeModel()

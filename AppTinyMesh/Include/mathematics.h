@@ -88,7 +88,7 @@ class Vector
 protected:
   double c[3]; //!< Components.
 public:
-  //! Empty 
+  //! Empty
   Vector() {}
 
   explicit Vector(double);
@@ -136,6 +136,7 @@ public:
   // Norm
   friend double Norm(const Vector&);
   friend double SquaredNorm(const Vector&);
+  friend double Sum(const Vector&);
 
   friend void Normalize(Vector&);
   friend Vector Normalized(const Vector&);
@@ -388,6 +389,16 @@ inline double Norm(const Vector& u)
 inline double SquaredNorm(const Vector& u)
 {
   return (u.c[0] * u.c[0] + u.c[1] * u.c[1] + u.c[2] * u.c[2]);
+}
+
+/*!
+\brief Compute the squared Euclidean norm of a vector.
+\param u %Vector.
+\sa Norm
+*/
+inline double Sum(const Vector& u)
+{
+  return ( u.c[0] + u.c[1] + u.c[2]);
 }
 
 /*!
