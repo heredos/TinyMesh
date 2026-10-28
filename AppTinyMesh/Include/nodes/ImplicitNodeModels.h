@@ -179,6 +179,30 @@ protected:
     void rebuildField() override;
 };
 
+class ImplicitUnionNodeModel : public ImplicitFieldNode{
+public:
+    QString name() const override { return QStringLiteral("ImplicitUnion"); }
+    QString caption() const override { return QStringLiteral("Union"); }
+    QString portCaption(QtNodes::PortType portType,
+                        QtNodes::PortIndex portIndex) const override;
+    unsigned int inputCount() const override { return 2; }
+
+protected:
+    void rebuildField() override;
+};
+
+class ImplicitIntersectionNodeModel : public ImplicitFieldNode{
+public:
+    QString name() const override { return QStringLiteral("ImplicitIntersection"); }
+    QString caption() const override { return QStringLiteral("Intersection"); }
+    QString portCaption(QtNodes::PortType portType,
+                        QtNodes::PortIndex portIndex) const override;
+    unsigned int inputCount() const override { return 2; }
+
+protected:
+    void rebuildField() override;
+};
+
 class MoveNodeModel : public ImplicitFieldNode{
 public:
     MoveNodeModel();

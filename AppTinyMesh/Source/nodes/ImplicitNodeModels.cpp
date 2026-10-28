@@ -24,6 +24,7 @@
 #include "implicits/add.h"
 #include "implicits/blob.h"
 #include "implicits/blobField.h"
+#include "implicits/intersection.h"
 #include "implicits/rotate.h"
 #include "implicits/sphere.h"
 #include "implicits/rectangle.h"
@@ -32,6 +33,7 @@
 #include "implicits/move.h"
 #include "implicits/rotate.h"
 #include "implicits/ringify.h"
+#include "implicits/union.h"
 #include "realtime.h"
 
 #include <QtNodes/StyleCollection>
@@ -522,6 +524,49 @@ void ImplicitAddNodeModel::rebuildField()
     }
 
     _field = std::make_shared<ImplicitAdd>(_inputs[0]->field(), _inputs[1]->field());
+}
+
+QString ImplicitUnionNodeModel::portCaption(QtNodes::PortType portType,
+                                            QtNodes::PortIndex portIndex) const
+{
+    if (portType == QtNodes::PortType::Out)
+        return QStringLiteral("Out");
+    if (portType == QtNodes::PortType::In)
+        return portIndex == 0 ? QStringLiteral("A") : QStringLiteral("B");
+    return QString();
+}
+
+void ImplicitUnionNodeModel::rebuildField()
+{
+    if (_inputs.size() < 2 || !_inputs[0] || !_inputs[1]
+        || !_inputs[0]->field() || !_inputs[1]->field()) {
+        _field.reset();
+        return;
+    }
+
+    _field = std::make_shared<ImplicitUnion>(_inputs[0]->field(), _inputs[1]->field());
+}
+
+QString ImplicitIntersectionNodeModel::portCaption(QtNodes::PortType portType,
+                                                   QtNodes::PortIndex portIndex) const
+{
+    if (portType == QtNodes::PortType::Out)
+        return QStringLiteral("Out");
+    if (portType == QtNodes::PortType::In)
+        return portIndex == 0 ? QStringLiteral("A") : QStringLiteral("B");
+    return QString();
+}
+
+void ImplicitIntersectionNodeModel::rebuildField()
+{
+    if (_inputs.size() < 2 || !_inputs[0] || !_inputs[1]
+        || !_inputs[0]->field() || !_inputs[1]->field()) {
+        _field.reset();
+        return;
+    }
+
+    _field = std::make_shared<ImplicitIntersection>(_inputs[0]->field(),
+                                                    _inputs[1]->field());
 }
 
 MoveNodeModel::MoveNodeModel()
