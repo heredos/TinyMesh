@@ -28,10 +28,10 @@
 #include "implicits/sphere.h"
 #include "implicits/rectangle.h"
 #include "implicits/threshold.h"
-#include "implicits/translate.h"
 #include "implicits/blobField.h"
 #include "implicits/move.h"
 #include "implicits/rotate.h"
+#include "implicits/ringify.h"
 #include "realtime.h"
 
 #include <QtNodes/StyleCollection>
@@ -599,6 +599,48 @@ void MoveNodeModel::load(const QJsonObject& data)
     rebuildAndEmit();
     syncUi();
 }
+//------------------------------------------------
+RingifyNodeModel::RingifyNodeModel()
+{
+    rebuildAndEmit();
+}
+
+QString RingifyNodeModel::portCaption(QtNodes::PortType portType,
+                                   QtNodes::PortIndex) const
+{
+    if (portType == QtNodes::PortType::In)
+        return QStringLiteral("Field");
+    if (portType == QtNodes::PortType::Out)
+        return QStringLiteral("Out");
+    return QString();
+}
+
+void RingifyNodeModel::rebuildField()
+{
+    if (_inputs.empty() || !_inputs[0] || !_inputs[0]->field()) {
+        _field.reset();
+        return;
+    }
+
+    _field = std::make_shared<ImplicitRingify>(_inputs[0]->field());
+}
+
+void RingifyNodeModel::buildParameters(QFormLayout* form){}
+
+void RingifyNodeModel::syncUi(){}
+
+QJsonObject RingifyNodeModel::save() const
+{
+    QJsonObject json = NodeDelegateModel::save();
+    return json;
+}
+
+void RingifyNodeModel::load(const QJsonObject& data)
+{
+    rebuildAndEmit();
+    syncUi();
+}
+//------------------------------------------------
 
 RotateNodeModel::RotateNodeModel()
 {

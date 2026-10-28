@@ -1,6 +1,5 @@
 #include "nodes/NodeEditorWidget.h"
 
-#include <algorithm>
 #include <unordered_map>
 
 #include <QAction>
@@ -35,6 +34,7 @@ std::shared_ptr<QtNodes::NodeDelegateModelRegistry> createRegistry()
     registry->registerModel<OutputNodeModel>("Output");
     registry->registerModel<MoveNodeModel>("Operators");
     registry->registerModel<RotateNodeModel>("Operators");
+    registry->registerModel<RingifyNodeModel>("Operators");
     return registry;
 }
 
@@ -108,6 +108,7 @@ void NodeEditorWidget::buildUi()
         addAction(QStringLiteral("Mesh Output"), QStringLiteral("MeshOutput"));
         addAction(QStringLiteral("Move"), QStringLiteral("Move"));
         addAction(QStringLiteral("Rotate"), QStringLiteral("Rotate"));
+        addAction(QStringLiteral("Make Ring"), QStringLiteral("ImplicitRingify"));
 
         QAction* selected = menu.exec(_view->viewport()->mapToGlobal(pos));
         if (!selected)

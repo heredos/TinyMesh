@@ -231,6 +231,27 @@ private:
     QDoubleSpinBox* _z = nullptr;
 };
 
+class RingifyNodeModel : public ImplicitFieldNode{
+public:
+    RingifyNodeModel();
+
+    QString name() const override { return QStringLiteral("ImplicitRingify"); }
+    QString caption() const override { return QStringLiteral("make Ring"); }
+    QString portCaption(QtNodes::PortType portType,
+                        QtNodes::PortIndex) const override;
+    unsigned int inputCount() const override { return 1; }
+
+    QJsonObject save() const override;
+    void load(const QJsonObject& data) override;
+
+protected:
+    void rebuildField() override;
+    void buildParameters(QFormLayout* form) override;
+
+private:
+    void syncUi();
+};
+
 class ThresholdNodeModel : public ImplicitFieldNode{
 public:
     ThresholdNodeModel();
