@@ -28,7 +28,7 @@ double Rectangle::Value(const Vector& p) const {
 Vector Rectangle::Gradient(const Vector& p) const {
 	Vector p1p = p1-p;
 	Vector p2p = p-p2;
-	Vector v = Vector();
+	Vector v = Vector(0);
 	bool allin = true; // 私ラッキースターラッキースター！
 	double max = -INFINITY;
 	for (int i=0; i<3; i++){
@@ -36,13 +36,13 @@ Vector Rectangle::Gradient(const Vector& p) const {
 			if (p1p[i]>0){
 				if (allin){
 					allin = false;
-					v = Vector();
+					v = Vector(0);
 					v[i] = -p1p[i];
 				}else{
 					v[i] = -p1p[i];
 				}
 			}else if (allin && p1p[i] > max) {
-				v = Vector();
+				v = Vector(0);
 				v[i] = -1;
 				max = p1p[i];
 			}
@@ -50,13 +50,13 @@ Vector Rectangle::Gradient(const Vector& p) const {
 			if (p2p[i]>0){
 				if (allin){
 					allin = false;
-					v = Vector();
+					v = Vector(0);
 					v[i] = p2p[i];
 				}else{
 					v[i] = p2p[i];
 				}
 			}else if (allin && p2p[i] > max) {
-				v = Vector();
+				v = Vector(0);
 				v[i] = 1;
 				max = p2p[i];
 			}
