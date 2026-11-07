@@ -1,0 +1,160 @@
+{
+    "connections": [
+        {
+            "inNodeId": 12,
+            "inPortIndex": 1,
+            "outNodeId": 8,
+            "outPortIndex": 0
+        },
+        {
+            "inNodeId": 12,
+            "inPortIndex": 0,
+            "outNodeId": 6,
+            "outPortIndex": 0
+        },
+        {
+            "inNodeId": 9,
+            "inPortIndex": 0,
+            "outNodeId": 11,
+            "outPortIndex": 0
+        },
+        {
+            "inNodeId": 10,
+            "inPortIndex": 0,
+            "outNodeId": 12,
+            "outPortIndex": 0
+        },
+        {
+            "inNodeId": 11,
+            "inPortIndex": 1,
+            "outNodeId": 8,
+            "outPortIndex": 0
+        },
+        {
+            "inNodeId": 11,
+            "inPortIndex": 0,
+            "outNodeId": 6,
+            "outPortIndex": 0
+        },
+        {
+            "inNodeId": 8,
+            "inPortIndex": 0,
+            "outNodeId": 7,
+            "outPortIndex": 0
+        },
+        {
+            "inNodeId": 6,
+            "inPortIndex": 0,
+            "outNodeId": 5,
+            "outPortIndex": 0
+        }
+    ],
+    "nodes": [
+        {
+            "id": 5,
+            "internal-data": {
+                "model-name": "Sphere",
+                "radius": 1,
+                "x": 0,
+                "y": 0,
+                "z": 0
+            },
+            "position": {
+                "x": -17.70236087689716,
+                "y": 269.7006745362564
+            }
+        },
+        {
+            "id": 6,
+            "internal-data": {
+                "model-name": "Move",
+                "x": -0.5,
+                "y": 0,
+                "z": 0
+            },
+            "position": {
+                "x": 242.62647554806074,
+                "y": 272.8246205733559
+            }
+        },
+        {
+            "id": 7,
+            "internal-data": {
+                "model-name": "Sphere",
+                "radius": 1,
+                "x": 0,
+                "y": 0,
+                "z": 0
+            },
+            "position": {
+                "x": -5.7272344013490795,
+                "y": 468.07124789207415
+            }
+        },
+        {
+            "id": 8,
+            "internal-data": {
+                "model-name": "Move",
+                "x": 0.5,
+                "y": 0,
+                "z": 0
+            },
+            "position": {
+                "x": 238.98187183811126,
+                "y": 464.94730185497474
+            }
+        },
+        {
+            "id": 9,
+            "internal-data": {
+                "center-x": 0,
+                "center-y": 0,
+                "center-z": 0,
+                "epsilon": 1e-04,
+                "half-size": 2.5,
+                "model-name": "MeshOutput",
+                "resolution": 64
+            },
+            "position": {
+                "x": 1013.1998313659361,
+                "y": -166.61045531197306
+            }
+        },
+        {
+            "id": 10,
+            "internal-data": {
+                "center-x": 0,
+                "center-y": 0,
+                "center-z": 0,
+                "epsilon": 1e-04,
+                "half-size": 2.5,
+                "model-name": "MeshOutput",
+                "resolution": 64
+            },
+            "position": {
+                "x": 1011.1172006745364,
+                "y": 408.1956155143339
+            }
+        },
+        {
+            "id": 11,
+            "internal-data": {
+                "model-name": "ImplicitUnion"
+            },
+            "position": {
+                "x": 687.2681281618887,
+                "y": -45.81787521079258
+            }
+        },
+        {
+            "id": 12,
+            "internal-data": {
+                "model-name": "ImplicitIntersection"
+            },
+            "position": {
+                "x": 685.185497470489,
+                "y": 436.31112984822937
+            }
+        }
+    ]
+}

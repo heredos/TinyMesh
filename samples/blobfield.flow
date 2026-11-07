@@ -1,0 +1,85 @@
+{
+    "connections": [
+        {
+            "inNodeId": 3,
+            "inPortIndex": 0,
+            "outNodeId": 5,
+            "outPortIndex": 0
+        },
+        {
+            "inNodeId": 4,
+            "inPortIndex": 0,
+            "outNodeId": 3,
+            "outPortIndex": 0
+        }
+    ],
+    "nodes": [
+        {
+            "id": 3,
+            "internal-data": {
+                "model-name": "Threshold",
+                "threshold": 0.9
+            },
+            "position": {
+                "x": 150,
+                "y": 0
+            }
+        },
+        {
+            "id": 4,
+            "internal-data": {
+                "center-x": 0,
+                "center-y": 0,
+                "center-z": 0,
+                "epsilon": 1e-04,
+                "half-size": 2.5,
+                "model-name": "MeshOutput",
+                "resolution": 64
+            },
+            "position": {
+                "x": 605.1391231028666,
+                "y": -40.611298482293435
+            }
+        },
+        {
+            "id": 5,
+            "internal-data": {
+                "blobs": [
+                    {
+                        "peak": 1,
+                        "radius": 0.7,
+                        "x": -0.8,
+                        "y": 0,
+                        "z": 0
+                    },
+                    {
+                        "peak": 1,
+                        "radius": 0.7,
+                        "x": 0.8,
+                        "y": 0,
+                        "z": 0
+                    },
+                    {
+                        "peak": 0.8,
+                        "radius": 0.6,
+                        "x": 0,
+                        "y": 0.9,
+                        "z": 0
+                    },
+                    {
+                        "peak": 0.8,
+                        "radius": 0.6,
+                        "x": 0,
+                        "y": 0.9,
+                        "z": 0
+                    }
+                ],
+                "model-name": "BlobField"
+            },
+            "position": {
+                "x": -341.55143338954457,
+                "y": -22.908937605396318
+            }
+        }
+    ]
+}
