@@ -3,8 +3,12 @@
 #include "mathematics.h"
 #include <omp.h>
 
+#define LINEAR
+
+
 void BlobField::add(Blob b){
 	BlobField *toChange;
+	#ifndef LINEAR
 	// automagically balance the tree
 	if (++childs%2){
 		if (left==nullptr){
@@ -19,6 +23,15 @@ void BlobField::add(Blob b){
 			right->add(b);
 		}
 	}
+	#else
+	// automagically keep the tree in a rack
+	if (childs==0){
+		left = new BlobField(b, this);
+		childs = 1;
+	}else{
+		left->add(b);
+	}
+	#endif
 }
 double BlobField::Value(const Vector& p)const {
 	double left = 0;
