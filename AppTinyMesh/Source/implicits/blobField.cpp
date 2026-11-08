@@ -3,7 +3,7 @@
 #include "mathematics.h"
 #include <omp.h>
 
-#define LINEAR
+//#define LINEAR
 
 
 void BlobField::add(Blob b){
