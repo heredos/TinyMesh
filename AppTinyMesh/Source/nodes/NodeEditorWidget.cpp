@@ -176,9 +176,9 @@ void NodeEditorWidget::loadDemoGraph()
     const auto outputId = addNode(QStringLiteral("MeshOutput"), QPointF(400, 0));
 
     if (auto* blob1 = _model->delegateModel<BlobNodeModel>(blob1Id))
-        blob1->setParameters(Vector(-0.8, 0.0, 0.0), 1.0, 0.7);
+        blob1->setParameters(Vector(-0.5, 0.0, 0.0), 1.0, 0.7);
     if (auto* blob2 = _model->delegateModel<BlobNodeModel>(blob2Id))
-        blob2->setParameters(Vector(0.8, 0.0, 0.0), 1.0, 0.7);
+        blob2->setParameters(Vector(0.5, 0.0, 0.0), 1.0, 0.7);
 
     _model->addConnection(QtNodes::ConnectionId{blob1Id, 0, addId, 0});
     _model->addConnection(QtNodes::ConnectionId{blob2Id, 0, addId, 1});
