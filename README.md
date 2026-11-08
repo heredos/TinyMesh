@@ -139,14 +139,10 @@ for i in range(10000): # number of samples to generate
 
 this outputs JSON that can then be used to replace the contents of the blobfield node in the `blobfield.flow` file. The files edited with various generations are stored in the `samples` folder. we will be using `blobfield10.flow`, `blobfield100.flow`, `blobfield1000.flow` and  `blobfield10000.flow` as the base for out benchmmark. we will use the graph time in milliseconds as reported by the software on the recompute of the entire pass.  
 
-here are the results for the linear pass
-```mermaid
-xychart
-	title "blobfield compute time"
-	x-axis "number of blobs (log scale)" [10, 100, 1000, 10000]
-	y-axis "computation time (ms)" 0 --> 10000
-```
+here are the results:
+![graph showing the computation time for various number of blobs](Illustrations/graph.svg)  
 
+in terms of speed the result is roughly the same (the tree even seems to be slightly faster, but not by a margin big enough to be conclusive).
 
 
 
