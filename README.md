@@ -98,7 +98,19 @@ I.E.
 ### Nodal setup
 there are multiple nodes required to make a blob field, and creating one requires a little bit of set up. We'll start with the basics:
 #### The Blob node
-by itself the blob node does nothing. the field it creates is a normal-looking bell field, which is >0 (or<=0 if you set its peak to a negative value). You can also set its position and radius, though the radius isn't guaranteed to be exact (it will depend on the threshold, see next subsection)
+by itself the blob node does nothing. the field it creates is a normal-looking bell field, which is >0 (or<=0 if you set its peak to a negative value). You can also set its position and radius, though the radius isn't guaranteed to be exact (it will depend on the threshold, see next subsection)  
+
+There are muliple blob types that can be used interchangably. Just see the following lines at the beginning of `blob.cpp`:
+```cpp
+#define NORMAL		-1
+#define HERMITE		0
+#define POLYNOMIAL	1
+#define WYVILL		4	// wyvill is defined to be the wtvill constant as well
+
+#define CURRENT		POLYNOMIAL
+```
+to change the blob type, just set CURRENT to any of the above types.  
+If you want to change the Wyvill N component, just define WYVILL to any value ⩾ 2 (here it is defined at 4).
 
 #### Threshold
 this is the node that allows us to see our blob field. given that our blobs are strictly positive or negative, we need to substract a small value to turn them into a signed field. This is what this node does, it will just substract the value at the sampled point by a given amount. This makes it also usable with SDFs (see our example for the rectangle node), and make our blof field usable with SDFs as well (though using blobs means that our SDFs will remove the exactitude of the distances in our signed **distance** field).  
@@ -119,8 +131,10 @@ Here you can see a blob field made out of 100 blobs (some of which hold negative
 ![an example of a blobfield](Illustrations/blobField100.png)
 
 ### technical points
-the current implementation of the blobs is based on gaussians.  
-I plan on implementing more variants if i get more time.  
+There are multiple ways to create blobs, we tried all the ones we saw in class, as well as a gaussian blob, just to see what could be done.
+
+each of these will be thouroughly benchmarked in this chapeter.
+
 #### Benchmarking setup
 the benchmarks on blobs were done using the BlobField node. The blobField node has two modes: List and Tree. The list mode was created by tricking tree mode into using something akin to a linked list. it can be enabled or disabled in `Source/implicits/blobField.cpp` by defining `LINEAR` or not defining it. we will benchmark against both to get a better overview of the impact of a properly balanced tree on performance.  
 
@@ -155,6 +169,13 @@ here are different renders of the same 10000 blobs:
 |---|---|---|---|---|
 |![a render of a gaussian blob](Illustrations/gaussian.png)|![a render of a hermite blob](Illustrations/hermite.png)|![a render of a Wyvill blob with a N of 2](Illustrations/wyvill2.png)|![a render of a Wyvill blob with a N of 4](Illustrations/wyvill4.png)|![a render of a polynomial blob](Illustrations/polynomial.png)|
 
+I personally really like the soft look of gaussian blobs, but the other types are much easier to work with, on top of being much faster.  
+
+One interesting property we can see is that except for gaussians, all tree-based computations are slightly faster than their sequential counterparts. The best theory I can come up with as to why this is the case, is that in bounded trees, the many cases in which the function returns 0 means that the leaves will be easier to compute, with no floating point additions required when the value is already 0.  
+On the other hand, gaussians are faster when computed linearly, because they are never 0, and as such, the non-terminal recursion adds a little bit of overhead and stack calls, causing the function to perform less well.  
+Though, all of this is just a theory and would require deeper investigations to properly assess the causes.  
+
+In the end, If what you are after is performance,then the Tree based hermite blob should give you the fastest result (and should be even faster with some proper threading). Otherwise, it is mostly up to the artistic vision.
 
 
 
