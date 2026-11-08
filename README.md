@@ -142,7 +142,18 @@ this outputs JSON that can then be used to replace the contents of the blobfield
 here are the results:
 ![graph showing the computation time for various number of blobs](Illustrations/graph.svg)  
 
-in terms of speed the result is roughly the same (the tree even seems to be slightly faster, but not by a margin big enough to be conclusive).
+| number of blobs | tree gaussian | sequential gaussian | tree hermite | sequential hermite | tree wyvill 2 | sequential wyvill 2 | tree wyvill 4 | sequential wyvill 4 | tree polynomial | sequential polynomial |
+|---|---|---|---|---|---|---|---|---|---|---|
+10 | 239.16 | 249.31 | 105.11 | 88.01 | 151.05 | 87.80 | 93.42 | 84.13 | 93.80 | 85.94
+100 | 1023.12 | 1057.56 | 666.94 | 820.81 | 655.60 | 861.96 | 645.07 | 786.17 | 667.35 | 828.51
+1000 | 9133.07 | 9913.04 | 5073.73 | 6405.92 | 5185.29 | 6958.02 | 4857.45 | 6127.58 | 5066.18 | 6410.62
+10000 | 114110.68 | 103744.97 | 66442.23 | 73684.63 | 69191.68 | 75203.72 | 70725.68 | 73617.84 | 68463.94 | 72383.20
+
+here are different renders of the same 10000 blobs:  
+
+| gaussian | hermite | wyvill 2 | wyvill 4 | polynomial
+|---|---|---|---|---|
+|![a render of a gaussian blob](Illustrations/gaussian.png)|![a render of a hermite blob](Illustrations/hermite.png)|![a render of a Wyvill blob with a N of 2](Illustrations/wyvill2.png)|![a render of a Wyvill blob with a N of 4](Illustrations/wyvill4.png)|![a render of a polynomial blob](Illustrations/polynomial.png)|
 
 
 

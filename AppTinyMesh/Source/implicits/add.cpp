@@ -9,5 +9,5 @@ Vector ImplicitAdd::Gradient(const Vector& p) const {
 }
 Vector ImplicitAdd::Normal(const Vector& p) const {
 	return Normalized(-Gradient(p));
-	//return Normalized(a->Normal(p) * a->Value(p) + b->Normal(p) * b->Value(p));
+	//return Normalized(-(a->Normal(p) * a->Value(p) + b->Normal(p) * b->Value(p)));
 }
