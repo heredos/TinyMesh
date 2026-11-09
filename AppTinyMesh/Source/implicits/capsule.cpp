@@ -20,8 +20,8 @@ double Capsule::Value(const Vector& p) const {
 	}else if(coef>1){
 		return Norm(p-end)-radius;
 	}else{
-		proj=direction*coef;
-		return Norm(p-proj)-radius;
+		Vector proj2=direction*coef;
+		return Norm(proj-proj2)-radius;
 	}
 }
 Vector Capsule::Gradient(const Vector& p) const {
@@ -32,8 +32,8 @@ Vector Capsule::Gradient(const Vector& p) const {
 	}else if(coef>1){
 		return Normalized(p-end);
 	}else{
-		proj=direction*coef;
-		return Normalized(p-proj);
+		Vector proj2=direction*coef;
+		return Normalized(proj-proj2);
 	}
 }
 
