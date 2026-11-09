@@ -24,6 +24,7 @@
 #include "implicits/add.h"
 #include "implicits/blob.h"
 #include "implicits/blobField.h"
+#include "implicits/capsule.h"
 #include "implicits/intersection.h"
 #include "implicits/rotate.h"
 #include "implicits/sphere.h"
@@ -501,6 +502,107 @@ void RectangleNodeModel::load(const QJsonObject& data)
     _point2 = Vector(data.value("x2").toDouble(_point2[0]),
                       data.value("y2").toDouble(_point2[1]),
                       data.value("z2").toDouble(_point2[2]));
+    rebuildAndEmit();
+    syncUi();
+}
+
+CapsuleNodeModel::CapsuleNodeModel()
+{
+    rebuildAndEmit();
+}
+
+QString CapsuleNodeModel::portCaption(QtNodes::PortType portType,
+                                      QtNodes::PortIndex) const
+{
+    return portType == QtNodes::PortType::Out ? QStringLiteral("Out") : QString();
+}
+
+void CapsuleNodeModel::rebuildField()
+{
+    _field = std::make_shared<Capsule>(_point1, _point2, _radius);
+}
+
+void CapsuleNodeModel::setParameters(const Vector& point1, const Vector& point2, double radius)
+{
+    _point1 = point1;
+    _point2 = point2;
+    _radius = radius;
+    rebuildAndEmit();
+    syncUi();
+}
+
+void CapsuleNodeModel::buildParameters(QFormLayout* form)
+{
+    _x1 = makeDoubleSpinBox(-100.0, 100.0, 0.1, 3, _point1[0]);
+    _y1 = makeDoubleSpinBox(-100.0, 100.0, 0.1, 3, _point1[1]);
+    _z1 = makeDoubleSpinBox(-100.0, 100.0, 0.1, 3, _point1[2]);
+    _x2 = makeDoubleSpinBox(-100.0, 100.0, 0.1, 3, _point2[0]);
+    _y2 = makeDoubleSpinBox(-100.0, 100.0, 0.1, 3, _point2[1]);
+    _z2 = makeDoubleSpinBox(-100.0, 100.0, 0.1, 3, _point2[2]);
+    _radiusBox = makeDoubleSpinBox(0.0, 100.0, 0.05, 4, _radius);
+
+    form->addRow(QStringLiteral("Point1 X"), _x1);
+    form->addRow(QStringLiteral("Point1 Y"), _y1);
+    form->addRow(QStringLiteral("Point1 Z"), _z1);
+    form->addRow(QStringLiteral("Point2 X"), _x2);
+    form->addRow(QStringLiteral("Point2 Y"), _y2);
+    form->addRow(QStringLiteral("Point2 Z"), _z2);
+    form->addRow(QStringLiteral("Radius"), _radiusBox);
+
+    const auto update = [this]() {
+        _point1 = Vector(_x1->value(), _y1->value(), _z1->value());
+        _point2 = Vector(_x2->value(), _y2->value(), _z2->value());
+        _radius = _radiusBox->value();
+        rebuildAndEmit();
+    };
+
+    connect(_x1, &QDoubleSpinBox::valueChanged, this, update);
+    connect(_y1, &QDoubleSpinBox::valueChanged, this, update);
+    connect(_z1, &QDoubleSpinBox::valueChanged, this, update);
+    connect(_x2, &QDoubleSpinBox::valueChanged, this, update);
+    connect(_y2, &QDoubleSpinBox::valueChanged, this, update);
+    connect(_z2, &QDoubleSpinBox::valueChanged, this, update);
+    connect(_radiusBox, &QDoubleSpinBox::valueChanged, this, update);
+}
+
+void CapsuleNodeModel::syncUi()
+{
+    if (!_x1 || !_y1 || !_z1 || !_x2 || !_y2 || !_z2 || !_radiusBox)
+        return;
+
+    const QSignalBlocker b1(_x1), b2(_y1), b3(_z1), b4(_x2), b5(_y2), b6(_z2),
+        b7(_radiusBox);
+    _x1->setValue(_point1[0]);
+    _y1->setValue(_point1[1]);
+    _z1->setValue(_point1[2]);
+    _x2->setValue(_point2[0]);
+    _y2->setValue(_point2[1]);
+    _z2->setValue(_point2[2]);
+    _radiusBox->setValue(_radius);
+}
+
+QJsonObject CapsuleNodeModel::save() const
+{
+    QJsonObject json = NodeDelegateModel::save();
+    json["x1"] = _point1[0];
+    json["y1"] = _point1[1];
+    json["z1"] = _point1[2];
+    json["x2"] = _point2[0];
+    json["y2"] = _point2[1];
+    json["z2"] = _point2[2];
+    json["radius"] = _radius;
+    return json;
+}
+
+void CapsuleNodeModel::load(const QJsonObject& data)
+{
+    _point1 = Vector(data.value("x1").toDouble(_point1[0]),
+                      data.value("y1").toDouble(_point1[1]),
+                      data.value("z1").toDouble(_point1[2]));
+    _point2 = Vector(data.value("x2").toDouble(_point2[0]),
+                      data.value("y2").toDouble(_point2[1]),
+                      data.value("z2").toDouble(_point2[2]));
+    _radius = data.value("radius").toDouble(_radius);
     rebuildAndEmit();
     syncUi();
 }

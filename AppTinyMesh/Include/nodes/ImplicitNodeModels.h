@@ -167,6 +167,41 @@ private:
     QDoubleSpinBox* _z2 = nullptr;
 };
 
+class CapsuleNodeModel : public ImplicitFieldNode{
+public:
+    CapsuleNodeModel();
+
+    QString name() const override { return QStringLiteral("Capsule"); }
+    QString caption() const override { return QStringLiteral("Capsule"); }
+    QString portCaption(QtNodes::PortType portType,
+                        QtNodes::PortIndex) const override;
+    unsigned int inputCount() const override { return 0; }
+
+    void setParameters(const Vector& point1, const Vector& point2, double radius);
+
+    QJsonObject save() const override;
+    void load(const QJsonObject& data) override;
+
+protected:
+    void rebuildField() override;
+    void buildParameters(QFormLayout* form) override;
+
+private:
+    void syncUi();
+
+    Vector _point1{0.0, 0.0, 0.0};
+    Vector _point2{1.0, 0.0, 0.0};
+    double _radius = 0.25;
+
+    QDoubleSpinBox* _x1 = nullptr;
+    QDoubleSpinBox* _y1 = nullptr;
+    QDoubleSpinBox* _z1 = nullptr;
+    QDoubleSpinBox* _x2 = nullptr;
+    QDoubleSpinBox* _y2 = nullptr;
+    QDoubleSpinBox* _z2 = nullptr;
+    QDoubleSpinBox* _radiusBox = nullptr;
+};
+
 class ImplicitAddNodeModel : public ImplicitFieldNode{
 public:
     QString name() const override { return QStringLiteral("ImplicitAdd"); }

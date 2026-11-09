@@ -6,9 +6,9 @@
 class Capsule: public AnalyticScalarField {
 	private:
 		Vector origin, end, direction;
-		double size;
+		double size, radius;
 	public:
-		Capsule(const Vector point1, const Vector point2);
+		Capsule(const Vector point1, const Vector point2, double radius);
 		double Lipshitz();
 		double Value(const Vector& p) const override;
 		Vector Gradient(const Vector& p) const override;
