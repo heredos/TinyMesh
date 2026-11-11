@@ -1,0 +1,152 @@
+{
+    "connections": [
+        {
+            "inNodeId": 4,
+            "inPortIndex": 0,
+            "outNodeId": 3,
+            "outPortIndex": 0
+        },
+        {
+            "inNodeId": 3,
+            "inPortIndex": 0,
+            "outNodeId": 5,
+            "outPortIndex": 0
+        },
+        {
+            "inNodeId": 5,
+            "inPortIndex": 0,
+            "outNodeId": 2,
+            "outPortIndex": 0
+        },
+        {
+            "inNodeId": 7,
+            "inPortIndex": 0,
+            "outNodeId": 6,
+            "outPortIndex": 0
+        },
+        {
+            "inNodeId": 5,
+            "inPortIndex": 1,
+            "outNodeId": 7,
+            "outPortIndex": 0
+        },
+        {
+            "inNodeId": 2,
+            "inPortIndex": 1,
+            "outNodeId": 1,
+            "outPortIndex": 0
+        },
+        {
+            "inNodeId": 2,
+            "inPortIndex": 0,
+            "outNodeId": 0,
+            "outPortIndex": 0
+        }
+    ],
+    "nodes": [
+        {
+            "id": 0,
+            "internal-data": {
+                "model-name": "Blob",
+                "peak": 1,
+                "radius": 0.7,
+                "x": -1,
+                "y": 0,
+                "z": 0
+            },
+            "position": {
+                "x": -360,
+                "y": -120
+            }
+        },
+        {
+            "id": 1,
+            "internal-data": {
+                "model-name": "Blob",
+                "peak": 1,
+                "radius": 0.7,
+                "x": 1,
+                "y": 0,
+                "z": 0
+            },
+            "position": {
+                "x": -360,
+                "y": 120
+            }
+        },
+        {
+            "id": 2,
+            "internal-data": {
+                "model-name": "ImplicitAdd"
+            },
+            "position": {
+                "x": -100,
+                "y": 0
+            }
+        },
+        {
+            "id": 3,
+            "internal-data": {
+                "model-name": "Threshold",
+                "threshold": 0.5
+            },
+            "position": {
+                "x": 709.1863406408095,
+                "y": -58.31365935919057
+            }
+        },
+        {
+            "id": 4,
+            "internal-data": {
+                "center-x": 0,
+                "center-y": 0,
+                "center-z": 0,
+                "epsilon": 1e-04,
+                "half-size": 2.5,
+                "model-name": "MeshOutput",
+                "resolution": 64
+            },
+            "position": {
+                "x": 1034.1610455311973,
+                "y": -150.9907251264757
+            }
+        },
+        {
+            "id": 5,
+            "internal-data": {
+                "model-name": "ImplicitAdd"
+            },
+            "position": {
+                "x": 474.83979763912316,
+                "y": 116.62731871838116
+            }
+        },
+        {
+            "id": 6,
+            "internal-data": {
+                "model-name": "Capsule",
+                "radius": 0.8,
+                "x1": -1,
+                "x2": 1,
+                "y1": 0,
+                "y2": 0,
+                "z1": 0,
+                "z2": 0
+            },
+            "position": {
+                "x": -24.99156829679596,
+                "y": 279.07251264755484
+            }
+        },
+        {
+            "id": 7,
+            "internal-data": {
+                "model-name": "ImplicitNot"
+            },
+            "position": {
+                "x": 276.9898819561551,
+                "y": 334.2622259696459
+            }
+        }
+    ]
+}
