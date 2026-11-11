@@ -33,6 +33,7 @@ std::shared_ptr<QtNodes::NodeDelegateModelRegistry> createRegistry()
     registry->registerModel<ImplicitAddNodeModel>("Operators");
     registry->registerModel<ImplicitUnionNodeModel>("Operators");
     registry->registerModel<ImplicitIntersectionNodeModel>("Operators");
+    registry->registerModel<ImplicitNotNodeModel>("Operators");
     registry->registerModel<ThresholdNodeModel>("Operators");
     registry->registerModel<OutputNodeModel>("Output");
     registry->registerModel<MoveNodeModel>("Operators");
@@ -110,6 +111,7 @@ void NodeEditorWidget::buildUi()
         addAction(QStringLiteral("Implicit Add"), QStringLiteral("ImplicitAdd"));
         addAction(QStringLiteral("Union"), QStringLiteral("ImplicitUnion"));
         addAction(QStringLiteral("Intersection"), QStringLiteral("ImplicitIntersection"));
+        addAction(QStringLiteral("Not"), QStringLiteral("ImplicitNot"));
         addAction(QStringLiteral("Threshold"), QStringLiteral("Threshold"));
         addAction(QStringLiteral("Mesh Output"), QStringLiteral("MeshOutput"));
         addAction(QStringLiteral("Move"), QStringLiteral("Move"));

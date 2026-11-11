@@ -32,6 +32,7 @@
 #include "implicits/threshold.h"
 #include "implicits/blobField.h"
 #include "implicits/move.h"
+#include "implicits/not.h"
 #include "implicits/rotate.h"
 #include "implicits/ringify.h"
 #include "implicits/union.h"
@@ -669,6 +670,26 @@ void ImplicitIntersectionNodeModel::rebuildField()
 
     _field = std::make_shared<ImplicitIntersection>(_inputs[0]->field(),
                                                     _inputs[1]->field());
+}
+
+QString ImplicitNotNodeModel::portCaption(QtNodes::PortType portType,
+                                          QtNodes::PortIndex) const
+{
+    if (portType == QtNodes::PortType::In)
+        return QStringLiteral("Field");
+    if (portType == QtNodes::PortType::Out)
+        return QStringLiteral("Out");
+    return QString();
+}
+
+void ImplicitNotNodeModel::rebuildField()
+{
+    if (_inputs.empty() || !_inputs[0] || !_inputs[0]->field()) {
+        _field.reset();
+        return;
+    }
+
+    _field = std::make_shared<ImplicitNot>(_inputs[0]->field());
 }
 
 MoveNodeModel::MoveNodeModel()

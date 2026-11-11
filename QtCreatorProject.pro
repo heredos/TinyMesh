@@ -82,6 +82,7 @@ HEADERS += \
     AppTinyMesh/Include/implicits/rectangle.h \
     AppTinyMesh/Include/implicits/capsule.h \
     AppTinyMesh/Include/implicits/move.h \
+    AppTinyMesh/Include/implicits/not.h \
     AppTinyMesh/Include/implicits/rotate.h \
     AppTinyMesh/Include/implicits/ringify.h \
     AppTinyMesh/Include/nodes/FieldData.h \

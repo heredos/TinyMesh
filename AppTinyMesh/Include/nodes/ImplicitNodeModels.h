@@ -238,6 +238,18 @@ protected:
     void rebuildField() override;
 };
 
+class ImplicitNotNodeModel : public ImplicitFieldNode{
+public:
+    QString name() const override { return QStringLiteral("ImplicitNot"); }
+    QString caption() const override { return QStringLiteral("Not"); }
+    QString portCaption(QtNodes::PortType portType,
+                        QtNodes::PortIndex portIndex) const override;
+    unsigned int inputCount() const override { return 1; }
+
+protected:
+    void rebuildField() override;
+};
+
 class MoveNodeModel : public ImplicitFieldNode{
 public:
     MoveNodeModel();
