@@ -69,6 +69,12 @@ the union node does exactly what you expect it to do, it merges two SDF by takin
 
 the intersection node also does exactly what you'd expect by returning the maximum of the values given by the two SDFs, and the according gradient and normals. It is just as fast as the union.
 
+#### Not
+![an example showcasing the not node](Illustrations/not.png)  
+
+In order to do more complex meshes, we also need a third boolean, the not node. What it does is it turns the shape inside out, not only the values, but also the normals and gradients. Though, thanks to how our SDFs were made, this should still mean that the distance should be fine.  
+It can be a bit less intuitive to use though, as you have to remember that the inside of the shape is now its outside, and the outside is now the inside. this needs to be taken into account when using other boolean nodes, or the add node.
+
 #### Move
 ![an example showcasing the move node](Illustrations/move.png)  
 
