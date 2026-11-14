@@ -186,12 +186,26 @@ Though, all of this is just a theory and would require deeper investigations to 
 
 In the end, If what you are after is performance,then the Tree based hermite blob should give you the fastest result (and should be even faster with some proper threading). Otherwise, it is mostly up to the artistic vision.
 
+## Conclusion
+Overall I had lots of fun with this project, and although I was not able to implement everything i had in mind (I wanted to add nodes to create colors, color gradients depending on the value of the field at a given position, and have fields paint each other in intersection, mostly), I still managed to get interesting results. I think I will want to work on this as a side project during my free time. Also, While I thouroughly benchmarked the blobs, I believe my benchmarking on the SDFs is severely lacking. And the prettiness of the end results depend severely on the size of the marching cubes.  
 
+I was however able to create a few interesting shapes that i think are worth sharing. All of them can be found in the `samples folder`
 
+## Appendix: more examples
+### Rings
+![a bunch of different types of rings](Illustrations/rings++.png)  
 
+the ringify node proved itself to be verry powerful, as you can not only create circle torus, you can also create cylinders, rectangulat rings, triangular rings, and more! (i'll leave the creation of the cone up to the reader it shouldn't be that hard to think of ;)  
+you can find the file in the samples as `rings.flow`.
 
+### Blobline
+![an example of a blobline](Illustrations/blobline.png)
 
-## Windows
+Inspired by [this post by japanse artist Masanori Yoshi creating the visualiation for a song by phasma](https://x.com/MasanoriYoshii/status/2115231133692748105), I created my own variant of two blobs on a line (which turned out to break my normals, so this was a good test case.)  
+you can find the file in the sample as `blobline.flow`.
+
+## Compilation
+### Windows
 - First, you must install Qt6 (https://www.qt.io/download, use the open source version). Install the msvc2019_64 compiler only (*Note: other compilers can work too*).
 - Set the "QTDIR64" environment variable to your Qt installation folder (example: "E:\Code\Qt\6.3.0\msvc2019_64")
 - Set the "GLEW_DIR" environment variable to the path "XXX/TinyMesh/Libs/", with XXX the path to your repository.
@@ -200,16 +214,17 @@ In the end, If what you are after is performance,then the Tree based hermite blo
 Finally, open the Visual Studio solution files with Visual Studio 2022 Community, or open the QtCreatorProject.pro with QtCreator. Compile/Build and execute, everything should work.
 *Note: For other IDE, you will have to use the provided CMakeLists.txt to generate the solution files yourself.*
 
-## Linux
+### Linux
 - First, you must install Qt6 (https://www.qt.io/download, use the open source version). Install the gcc compiler only (*Note: other compilers can work too*).
 - Install the following packages
 ```
-sudo apt-get install g++ libglew-dev freeglut3-dev
+sudo apt-get install g++ libglew-dev freeglut3-dev qmake6
 ```
 Finally, open the QtCreatorProject.pro with QtCreator. Click on configure, then build and execute, everything should work.
+you can also run `qmake6` then `make` to build the project. the executable will be found as `QtCreatorProject` at the root of the project.
 *Note: For other IDE, you will have to use the provided CMakeLists.txt to generate the solution files yourself.*
 
-## Mac OS/X
+### Mac OS/X
 - First, you must install Qt6 (https://www.qt.io/download, use the open source version). Install the gcc compiler only (*Note: other compilers can work too*).
 -  Install the following packages (*Note: Depending on your Mac OS/X version, other packages might be needed. Shoot me an email if anything is missing.*
 ```

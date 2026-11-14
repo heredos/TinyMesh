@@ -1,21 +1,21 @@
 {
     "connections": [
         {
-            "inNodeId": 4,
+            "inNodeId": 2,
             "inPortIndex": 0,
-            "outNodeId": 3,
+            "outNodeId": 0,
             "outPortIndex": 0
         },
         {
-            "inNodeId": 3,
-            "inPortIndex": 0,
-            "outNodeId": 5,
+            "inNodeId": 2,
+            "inPortIndex": 1,
+            "outNodeId": 1,
             "outPortIndex": 0
         },
         {
             "inNodeId": 5,
-            "inPortIndex": 0,
-            "outNodeId": 2,
+            "inPortIndex": 1,
+            "outNodeId": 7,
             "outPortIndex": 0
         },
         {
@@ -26,20 +26,20 @@
         },
         {
             "inNodeId": 5,
-            "inPortIndex": 1,
-            "outNodeId": 7,
-            "outPortIndex": 0
-        },
-        {
-            "inNodeId": 2,
-            "inPortIndex": 1,
-            "outNodeId": 1,
-            "outPortIndex": 0
-        },
-        {
-            "inNodeId": 2,
             "inPortIndex": 0,
-            "outNodeId": 0,
+            "outNodeId": 2,
+            "outPortIndex": 0
+        },
+        {
+            "inNodeId": 3,
+            "inPortIndex": 0,
+            "outNodeId": 5,
+            "outPortIndex": 0
+        },
+        {
+            "inNodeId": 4,
+            "inPortIndex": 0,
+            "outNodeId": 3,
             "outPortIndex": 0
         }
     ],
@@ -125,7 +125,7 @@
             "id": 6,
             "internal-data": {
                 "model-name": "Capsule",
-                "radius": 0.8,
+                "radius": 0.6,
                 "x1": -1,
                 "x2": 1,
                 "y1": 0,

@@ -1,0 +1,94 @@
+{
+    "connections": [
+        {
+            "inNodeId": 4,
+            "inPortIndex": 0,
+            "outNodeId": 17,
+            "outPortIndex": 0
+        },
+        {
+            "inNodeId": 18,
+            "inPortIndex": 0,
+            "outNodeId": 10,
+            "outPortIndex": 0
+        },
+        {
+            "inNodeId": 17,
+            "inPortIndex": 1,
+            "outNodeId": 18,
+            "outPortIndex": 0
+        },
+        {
+            "inNodeId": 17,
+            "inPortIndex": 0,
+            "outNodeId": 8,
+            "outPortIndex": 0
+        }
+    ],
+    "nodes": [
+        {
+            "id": 4,
+            "internal-data": {
+                "center-x": 0,
+                "center-y": 0,
+                "center-z": 0,
+                "epsilon": 1e-04,
+                "half-size": 2.5,
+                "model-name": "MeshOutput",
+                "resolution": 64
+            },
+            "position": {
+                "x": 1034.1610455311973,
+                "y": -150.9907251264757
+            }
+        },
+        {
+            "id": 17,
+            "internal-data": {
+                "model-name": "ImplicitIntersection"
+            },
+            "position": {
+                "x": 649.645127118644,
+                "y": 141.32246441535426
+            }
+        },
+        {
+            "id": 8,
+            "internal-data": {
+                "model-name": "Sphere",
+                "radius": 1,
+                "x": 1,
+                "y": 0,
+                "z": 0
+            },
+            "position": {
+                "x": -169.73440134907253,
+                "y": 29.15682967959528
+            }
+        },
+        {
+            "id": 10,
+            "internal-data": {
+                "model-name": "Sphere",
+                "radius": 1,
+                "x": 0,
+                "y": 0,
+                "z": 0
+            },
+            "position": {
+                "x": -21.86762225969649,
+                "y": 324.89038785834737
+            }
+        },
+        {
+            "id": 18,
+            "internal-data": {
+                "model-name": "ImplicitNot"
+            },
+            "position": {
+                "x": 293.6001586303484,
+                "y": 250.87476241175295
+            }
+        }
+    ]
+}
