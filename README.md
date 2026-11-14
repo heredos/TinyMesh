@@ -50,14 +50,17 @@ I tried to make it a real distance field though, and if you use the threshold no
 ![an example of the rectangle node](Illustrations/enlarged_rectangle.png)
 
 #### Torus
-After a lot of thinking, it sounded better to have the torus be an operator. See Makering.
+After a lot of thinking, it sounded better to have the torus be an operator. See Make_ring.
 
 #### Pills/Capsules
-Technically not implemented yet, but can still be done with a bit of creativity:  
+While the capsule could be achieved by mixing a few operators we had access to (see the second picture), it was still better to  have it be a true node for the sake of performance.
+This node was achieved by projecting the current point onto the line, and checking wether it was between the two points. If it is, return the distance of the sampled point to the projected point (minus a radius), and if it isn't do as if we wample the sphere of the set radius of the closest point of the two:
 
-![an example of a capsule node](Illustrations/capsule.png)
+![an example of a capsule node](Illustrations/true_capsule.png)
 
-Of course, this is very slow and impractical (though it is a valid SDF), and I will come up with a proper implementation if I have the time to.
+Of course, there is also the very slow and impractical (though still valid as a SDF) way of mixing operators as follows, but the above is preferred, as it is about 4 times faster:  
+
+![an example of using two spheres a make ring node, a recangle and a bunch of union nodes to create a capsule](Illustrations/capsule.png)
 
 ### Operators
 #### Union
